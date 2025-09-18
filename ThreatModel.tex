@@ -1,0 +1,34 @@
+\section{Threat Model}
+\label{Sec: Threat Model}
+
+% 2024-12-11-14-20-重新整理威胁模型
+%\subsection{Attacker Goal}
+The goal of \pandora is to ensure persistent misclassification of the attack targets by the victim model throughout the CDA-AL process, as shown in Equation~\ref{PANDORA-Formulation}.
+\begin{equation}
+	\begin{aligned}
+			\max_{ \{ D_{poi}^{n} \}_{n=1}^{T} } \sum_{n=1}^{T} \mathbb{I}[ f_{\bm{\theta}_{n}}(x_{tar}) \neq y_{tar} ]
+	\end{aligned}
+	\label{PANDORA-Formulation}
+\end{equation}
+Let $x_{tar}$ denote the target sample with ground-truth label $y_{tar}$, and let $T$ represent the total number of drift periods.
+We use $\mathbb{I}[\cdot]$ as an indicator function that equals $1$ if the condition holds and $0$ otherwise.
+At each cycle $n$, the attacker injects poisoning data $D_{poi}^{n}$ into the training process, resulting in an updated victim model $f_{\theta_{n}}$ trained with $D_{poi}^{n}$.
+By continuously introducing such poisoned data across cycles, the attacker aims to drive $f_{\theta}$ to misclassify the target sample $x_{tar}$.
+%The attacker will also attempt to keep the victim model’s overall performance stable, thereby maintaining the stealth of the attack.
+%In addition, it is important to note that in the \pandora, the attack targets has a defined source class but does not enforce misclassification into a specific target class.
+%By avoiding a fixed target class, this class-agnostic misclassification strategy increases the difficulty of detection, as the victim model is more likely to interpret the misclassifications as effects of natural concept drift or inherent uncertainty rather than deliberate poisoning attack.
+%\subsection{Attacker Capabilities}
+
+We assume attackers cannot access the victim model's internal parameters or influence its training process~\cite{2017-ASIACCS-Black-Box-Attack}, including manual labeling of CDA-AL~\cite{2023-Usenix-chenyizhen}.
+Attackers can only submit samples to the victim model for querying to obtain outputs such as sample uncertainty scores~\cite{2025-Baidu-Image-Recognition} and predicted labels~\cite{Virustotaluploadinterface}.
+Additionally, attackers are presumed to have access to public data and the resources required to train surrogate models~\cite{2023-AAAI-surrogate-model-for-adversarial-attack}.
+Consistent with previous research on active learning attacks~\cite{2021-Usenix-active-learning-backdoor}, we assume the attacker typically has knowledge of the victim model's labeling budget settings. %(including the uncertainty threshold).
+Moreover, the attacker can access the victim model’s prediction uncertainty.
+This is based on the observation that existing machine learning services (e.g., image recognition~\cite{2025-Baidu-Image-Recognition}) provide uncertainty information to help users better interpret and utilize the prediction results.
+%Similarly, malware detection services such as VirusTotal~\cite{Virustotaluploadinterface} provide outputs from multiple detection models, enabling users to estimate prediction uncertainty based on the distribution of these results.
+%Furthermore, in Section~\ref{Sec: Attack Influencing Factors}, we perform an experimental analysis for the scenario where the attacker cannot access the victim model's labeling budget to understand how this capability affects the attack success rate.
+In addition, it is important to note that although CDA-AL systems involve human analysts, their primary role is to provide reliable labels for concept drift samples~\cite{2023-Usenix-chenyizhen}.
+As long as \pandora does not rely on malicious label manipulation, the attack remains inconspicuous to human analysts.
+In PANDORA, all poisoned samples follow the threat model of clean-label poisoning attacks, where the labels of poisoned samples are never maliciously altered.
+Compared with existing clean-label poisoning~\cite{2018-NIPS-Poison-frogs} threat models that assume free insertion of poisoned samples into the training dataset and require access to the victim model’s parameters, PANDORA imposes stricter constraints: poisoned samples must exhibit high uncertainty, and no parameter access is needed.
+Therefore, PANDORA operates under a more stringent threat model than prior clean-label poisoning attacks.

@@ -1,0 +1,88 @@
+\section{Introduction}
+\label{Sec: Introduction}
+%Machine learning models are widely applied across various practical domains~\cite{2024-AAAI-AoA-estimation,2024-AAAI-Anomalous-User-Detection-on-Twitter,2024-AAAI-Designing-Biological-Sequences,2024-AAAI-Rumor-Detection}.
+Supervised machine learning has been widely applied to critical security applications, including intrusion detection~\cite{yang2024recda} and malware analysis~\cite{fernando2024fesad}, where accurate and timely classification is essential for preventing breaches and mitigating threats.
+However, as the gap between the testing and training data distributions widens over time~\cite{park2016active}, machine learning models performance on the testing data declines~\cite{malekghaini2023deep}.
+This phenomenon, known as concept drift~\cite{2018-CCF-A-concept-drift-A-review,2024-1Q-An-overview-CDA,2024-1Q-survey-CDA}, is particularly dangerous because it can result in inaccurate predictions and potentially critical failures in high-stakes applications.
+
+To address this challenge, numerous Concept Drift Adaptation (CDA) approaches have been proposed~\cite{2023-Q1-Concept-drift-handling,2023-Detecting-group-concept-drift-from-multiple-data-streams-1qu,aaaiYuLZ024}. 
+Among them, Concept Drift Adaptation with Active Learning (CDA-AL)\cite{2023-Usenix-chenyizhen,liu2021comprehensive,krawczyk2018combining} has emerged as a promising strategy. 
+In CDA-AL, the model selectively queries labels for the most informative data samples—typically those with the highest prediction uncertainty~\cite{ren2021survey,2023-Usenix-chenyizhen}—to detect and adapt to concept drift. 
+These selected samples are manually labeled and incorporated into the training dataset for model retraining. 
+As a result, CDA-AL improves the model's prediction accuracy on evolving data distributions.
+%Obviously, providing ground-truth labels for high-uncertainty samples incurs a high cost, which is quantified as the labeling budget~\cite{yuan2022optical,hacohen2023select}.
+%By learning from these informative yet uncertain samples, the model can adapt to the concept drift.
+%The number of selected samples is referred to as the active learning labeling budget~\cite{hacohen2023select}, which represents the most costly human analysis resource in CDA-AL.
+
+Because CDA-AL continuously collects testing data stream and selects retraining samples from it, the framework may become vulnerable to poisoning attacks. 
+However, unlike traditional poisoning attacks that inject malicious samples directly into the training dataset in a batch manner~\cite{2022-ACM-Computing-Survey-Threats-to-training, 2024-SP-Offline-RL-Backdoor,2018-NIPS-Poison-frogs,2018-SP-poisoning-regression,2024-TIFS-Backdoor-Contrastive-Learning}, attacks against CDA-AL must exploit its adaptive learning process by planting poisoned samples in the testing data stream. 
+This is a challenging task, as attackers must deceive the retraining process into mistakenly selecting poisoned samples for labeling, which are then incorporated into the retraining dataset—a scenario that, to the best of our knowledge, has not been explored before.
+
+The closest prior work is poisoning attacks or adversarial perturbations on CDA~\cite{2023-CCF-B-Adversarial-concept-drift-detection-under-poisoning-attacks, apruzzese2024adversarial};
+however, this area remains largely underexplored. 
+These studies typically assume that poisoned samples from the testing data stream are guaranteed to be incorporated into the retraining dataset, which does not align with the selective sample acquisition mechanism used in CDA-AL. 
+Moreover, their focus is primarily on untargeted attacks aimed at degrading overall model performance, overlooking the design of targeted poisoning strategies that can preserve stealth and global accuracy while manipulating specific predictions.
+%However, CDA-AL operates on a continuously arriving testing stream, conventional poisoning methods~\cite{2024-SP-Offline-RL-Backdoor} \ziming{many more citations} that directly inject poisoned samples into the training set are no longer applicable. 
+%Instead, the attacker must embed poisoned samples into the testing stream~\cite{2023-CCF-B-Adversarial-concept-drift-detection-under-poisoning-attacks}, allowing them to be indirectly included in retraining and thus degrade model performance.
+%Nevertheless, existing poisoning attacks targeting concept drift typically assume that poisoned samples from the test stream are guaranteed to enter the training set, overlooking the selective sample acquisition mechanism employed by CDA-AL~\cite{2023-Usenix-chenyizhen}.
+%Poisoning attacks on CDA-AL constitute a specialized yet critical research gap, as many security applications rely on manual analysis of complex samples to adapt to concept drift~\cite{2023-Usenix-chenyizhen}.
+%Most existing poisoning attack studies focus on batch learning settings~\cite{2024-SP-Offline-RL-Backdoor,2024-SP-Audio-Backdoor}, where poisoned samples are injected into static training datasets to degrade model performance.
+%In contrast, CDA-AL adapts to concept drift via streaming data, making streaming-based poisoning a more realistic threat~\cite{2021-Usenix-CDAE}.
+%Furthermore, CDA-AL employs strict sample selection criteria~\cite{2023-Usenix-chenyizhen}, which significantly limits the inclusion of poisoned data and reduces the effectiveness of existing poisoning attacks.
+
+In this paper, we present \pandora, a novel targeted \underline{p}oisoning \underline{a}ttack against co\underline{n}cept \underline{d}rift \underline{a}daptation with active learning via uncertainty \underline{r}anking m\underline{a}nipulation.
+\pandora treats newly emerging concept drift samples in the testing stream as attack targets, aiming to prolong their misclassification while maintaining the overall performance of the victim model.
+Specifically, \pandora generates high-uncertainty poisoned samples via adversarial perturbations.
+These samples manipulate the uncertainty ranking in the testing data stream of each concept drift cycle, increasing their chances of being selected during active learning-based retraining.
+The poisoned samples ultimately deplete the victim model’s limited labeling budget, thereby hindering effective learning on concept drift samples associated with the attack targets.
+%that combines uncertainty-constrained search with problem space perturbations.
+%Furthermore, we introduce a Shapley additive explanation method to attribute uncertainty to sample features.
+%Based on features with high uncertainty influence, we optimize the generation of poisoned samples, expanding their uncertainty impact and further enhancing the robustness of the attack.
+%Ultimately, \pandora prevents the victim model from acquiring informative knowledge about the attack target (e.g., attacker-specified malware samples) from the unlabeled testing data stream, leading to the misclassification of the attack targets.
+%Regarding stealth, \pandora neither relies on label flipping nor degrades the victim model’s overall performance on previously collected data, thereby exhibiting strong stealthiness.
+%Therefore, the attack remains undetected even if human experts within the CDA-AL framework analyze the poisoned samples.
+%Moreover, our attack consumes a large portion of the labeling budget in CDA-AL, which represents the most expensive cost in active learning—human annotation.
+%This cost is irreversible, as the human effort and time spent on poisoned samples cannot be recovered.
+%Even if the attack is detected at a later stage, the damage caused by the depletion of these resources remains permanent.
+
+%The key challenge of the \pandora is to generate high-uncertainty poisoned samples that are likely to be selected by the victim model, thereby exhausting its labeling budget.
+%To address this, we first estimate the labeling budget consumption required to target a specific attack target.
+%Then, we employ a constrained search strategy to identify high-uncertainty concept drift samples from the testing data as poisoning seeds.
+%Based on these seeds, we propose a poisoned sample generation strategy that utilizes problem and feature space perturbations to exhaust the victim model's labeling budget.
+%To improve the efficiency of feature-space perturbation, we employ SHapley Additive exPlanations (SHAP) for uncertainty-based feature attribution, enabling more precise feature manipulation.
+%As a result, the victim model is unable to acquire informative samples related to the attack target, leading to its continuous misclassification.
+
+%We conduct a comprehensive evaluation to demonstrate that existing CDA-AL methods~\cite{2023-Usenix-chenyizhen} are vulnerable to adversarial concept drift induced by poisoning attacks.
+We evaluated the effectiveness of \pandora on five concept drift datasets: APIGraph~\cite{2020-CCS-APIGraph} , Androzoo~\cite{2016-Androzoo} and BODMAS~\cite{2021-PE-malware-dataset} for malware detection, MNIST~\cite{2017-MINIST-dataset} for image recognition, and SPAM~\cite{2010-Spam-Emali-dataset} for spam filtering.
+%\pandora injects poisoned samples into the testing data stream during each retraining phase of the CDA-AL model.
+Even when the number of poisoned samples is limited to no more than 0.05 of the testing stream, \pandora effectively extends the misclassification duration for over 80\% of the attack targets by at least one concept drift cycle across four datasets.
+%Moreover, we observe a positive correlation between the duration of misclassification and the cumulative number of \pandora’s attacks during CDA-AL retraining.
+%Empirical results on the APIGraph dataset—which exhibits the longest time span among all four datasets—show that as the cumulative number of attacks increases, more than 86\% of the attack targets experience a corresponding extension in misclassification duration.
+%\pandora consistently prolongs the misclassification duration of attack targets across all four datasets, achieving an average success rate of over 80\%.
+%Among these, APIGraph, which features the longest time span and largest number of attack targets, is the primary dataset for our experimental validation.
+%For instance, over a 72-month period, we conducted attacks on more than 1,000 individual targets and achieved an average success rate of 88\%.
+To better understand the effectiveness of \pandora under different conditions, we further analyze key factors influencing attack effectiveness, including sample selection strategies of active learning, the victim model's labeling capacity, and methods for constructing sample features.
+Notably, \pandora remains effective across all settings, and we provide an in-depth analysis of the relationship between influencing factors and attack performance.
+
+We also evaluated the effectiveness of existing targeted poisoning defense techniques against \pandora, including data sanitization~\cite{chen2018detecting}, robust training~\cite{DFP}, and input-time detection~\cite{2023-ICCV-Trigger-Detect}.
+This corresponds to the three stages of potential defense methods for CDA-AL: data processing, sample selection, and model retraining.
+Experimental results indicate that these methods struggle to effectively distinguish between poisoned and clean samples, leading to the failure of defenses against \pandora.
+These findings highlight the urgent need for new defense mechanisms against \pandora.
+To address this, we propose a poisoned sample filtering approach based on intra-cluster distance to mitigate the effects of \pandora.
+Under the same poisoning attack settings, our defense method successfully prevents the extension of misclassification duration for 40\% of the attack targets.
+The contributions of this paper are as follows:
+
+\begin{itemize}
+	\item We present \pandora, the first targeted poisoning attack against CDA-AL.
+	\pandora causes the misallocation of labeling budget to poisoned samples by manipulating the uncertainty ranking of testing data, leading to misclassification of attack targets during the adaptation process.
+	
+	\item We introduce a strategy for generating high-uncertainty poisoned samples.
+	By applying problem-space adversarial perturbations and concept drift direction misguidance, our method generates enough poisoned samples to exhaust the limited labeling budget.
+	
+	\item We evaluate \pandora across diverse datasets, model architectures, and sample selection strategies, demonstrating its effectiveness in prolonging the misclassification duration of attack targets.
+	To demonstrate our commitment to open-source, we have made an anonymized version of the code available at \href{https://anonymous.4open.science/r/\pandora-Attack-B730}{https://anonymous.4open.science/r/\pandora-Attack-B730} 
+	
+	\item We identify critical limitations in existing defense mechanisms against \pandora.
+	We present a poisoned sample filtering method based on cluster-adaptive distance to mitigate this attack.
+\end{itemize}
+

@@ -1,0 +1,144 @@
+NDSS 2026 Paper #340 Reviews and Comments
+===========================================================================
+Paper #340 Manipulating Uncertainty Ranking with Poisoning Attacks for
+Adversarial Concept Drift
+
+
+Review #340A
+===========================================================================
+
+Overall recommendation
+----------------------
+2. Weak reject
+
+Writing quality
+---------------
+4. Well-written
+
+Paper summary
+-------------
+This paper addresses the problem of dataset poisoning in security detectors in a temporal way, i.e., when done in a stream of data, face to concept drift adaptation via active learning, rather than on a batch. The paper proposes a new poisoning attack against this type of detector, consisting of flooding the Active Learning mechanism with many low-confidence samples, such that the model can't learn everything for retraining and ends up poisoned. The attack is tested against Android and Windows malware, and with SPAM detection tasks.
+
+Strengths (bullet points)
+-------------------------
++ Moving the poisoning problem from batch to a stream problem.
++ Comprehensive set of experimental settings.
+
+Weaknesses (bullet points)
+--------------------------
+- There is a lack of technical novelty in the attacks. The stream nature is new, but the attacks themselves are consolidated in the literature.
+- Limited evaluation diversity. It has not been tested with other attack types or with defenses against poisoning.
+
+Detailed comments for authors
+-----------------------------
+Thank you, authors, for your submission. I see immense potential in this paper, which can mature to become an excellent paper. In my view, the key point of this paper is to convert the poisoning problem from a batch problem to a stream problem, which is more realistic. This fact should be explored in the paper to make it robust. Unfortunately, while already insightful, this paper has not yet explored its entire potential, still presenting room for improvement, as I detail below:
+
+0. Abstract
+ - Whereas it gives a number (80%), it provides no reference to evaluate this number, such as the performance of other detectors, so it is impossible to say if the result is good or not.
+
+1. Introduction
+ - There is a lack of presentation of the key insights of the paper here. Show how is the new attack, and how that contributes to reshape our current understanding on poisoning threat. Once again, reinforce that stream problems are more realistic than batch poisoning.
+ - After re-reading this section and checking the entire paper, I have contradictory feelings about the novelty of this paper. On the positive side, moving the poisoning problem from batch into a stream is new and more realistic. Most, if not all, works in the literature assume a batch of data is poisoned simultaneously, which is often untrue. On the other hand, this paper lacks novelty beyond such a move, as the attacks themselves (e.g., the ones in the problem space) are already consolidated in the literature. Moving this paper forward would be to reimplement the batch works from the literature and show that those great results they claim (poisoning with 1% of data) do not hold for a stream scenario.
+
+3. Threat model
+ - It assumes that Active Learning (AL) amplifies the effects, which is OK, but it seems to also implicitly assume that AL is some kind of autonomous system, such as a sandbox. In the reality of most AVs, AL is performed by human analysts (https://www.sciencedirect.com/science/article/abs/pii/S0167404824004279), who are much more complex to trick than the automated system, so how could the attack be possible in this scenario? This should be, at least, discussed.
+ - An unrealistic aspect of the threat model is that it assumes that all samples submitted to the model are controlled by the poisoner attacker, with no other interference from other entities. In reality, multiple attackers--malware creators--will be submitting samples simultaneously, which might help or harm the poisoning attempt. This should be taken into consideration for a more realistic evaluation.
+
+4. Detailed Design
+ - Some design decisions are not justified, such as why SHAP is used for the uncertainty measure and not another option? Is this the only option? Is this the best option? Why? I think conformal evaluation (https://ieeexplore.ieee.org/document/9833659) could be used for that. More specifically, the classifier's credibility could be used to measure uncertainty. I'd like to see a discussion on that.
+
+5. Evaluation
+ - A good aspect of the used dataset is its diversity, covering Android malware, Spam, Windows malware, etc. Unfortunately, many datasets typically used for concept drift evaluation in the security domain (e.g., Drebin and Androzoo) were not considered. It would be interesting to compare them, as they are used in many works in the literature, which would allow benchmarking them.
+ - The use of 50 epochs for training must be better justified, as it sounds like a lot of effort for training, and no support for the need for such a big number is provided. Was any early stop mechanism implemented to ensure the models are not overfitting? Is it possible to give any guarantees on that? An overfitted model is easy to bypass and poison.
+ - The choice of the defense model is somewhat ad hoc. There are no guarantees that the defense models considered SOTA for these tasks are SOTA. It would be interesting to test the best models available currently. In particular, those are already designed to resist poisoning.
+ - For the Metrics, it would be better to use more continuous metrics, such as Area Under Time (AUT), or exposure over time, to provide a cumulative value over time, not just a single snapshot.
+ - No defense against the attack was evaluated. It would be better to test models with SOTA defenses against poisoning to see how they work in the stream scenario.
+ - Another limitation in the evaluation is the lack of competing attacks on the test. We know that the proposed attack is effective, but are the others as well? If they are all effective, we are more likely to observe a weak model rather than a strong attack.
+ - In sum, this paper has vast potential, but it must broaden its evaluation/scope to realize this potential.
+
+Concrete steps for improvement
+------------------------------
+- Justify if no overfitting is observed.
+- Ideally, test with classical Android malware datasets (DREBIN and Androzoo) to allow benchmarking with the literature works.
+- Clarify the threat model, whether the AL is limited to another automated model (e.g., sandbox), and whether it is possible to deceive a real analyst.
+- Include other distributions, from other attackers, in the tests.
+- Compare the proposed attack with other attacks.
+- Include model poisoning defenses in the comparison.
+
+Ethical Considerations
+----------------------
+3. I don't see any ethical implications for this paper.
+
+
+
+Review #340B
+===========================================================================
+
+Overall recommendation
+----------------------
+2. Weak reject
+
+Writing quality
+---------------
+3. Adequate
+
+Paper summary
+-------------
+This paper studies the robustness of Concept Drift Adaptation via Active Learning (CDA-AL) against data poisoning attacks. In CDA-AL, a deployed machine learning model facing evolving data distributions periodically selects high-uncertainty samples from incoming data to label and retrain on, thereby adapting to concept drift. The authors identify a novel adversarial vulnerability in this process and propose a poisoning attack called PACDA (Poisoning Attack against Concept Drift Adaptation). The core idea of PACDA is to manipulate the model’s uncertainty-based sample ranking so that the model’s limited labeling budget is misallocated to attacker-chosen, uninformative samples. By injecting crafted poisonous samples into the test data stream, the attacker causes the system to waste its labeling effort on these dummy samples, thereby preventing the true concept drift instances (the attacker’s target samples) from being selected and learned. As a result, the victim model fails to adapt to certain new distribution shifts and continues misclassifying the attacker-specified target instances over time.
+
+Strengths (bullet points)
+-------------------------
++ Highlights concept drift under adversarial conditions—an underexplored but impactful issue in adaptive security systems.
++ A well-designed attack Strategy to tackle the problem well
++ Extensive Empirical Evaluation
++ Include Analysis of Defense and Mitigations
+
+Weaknesses (bullet points)
+--------------------------
+- Strong threat model
+- Evaluation of generalizability and scope is not enough
+- Insufficient Ablation and Causality Analysis
+-  No analysis of defense trade-offs
+- unclearer contrast with prior work
+
+Detailed comments for authors
+-----------------------------
+Thank you for submitting the paper to NDSS. The paper can be further improved by addressing the following issues.
+
+- Clarify and Justify the Threat Model: Please better ground your threat model in real-world scenarios. Clarify how the attacker obtains uncertainty feedback—can they observe confidence scores, or only binary outputs? If only binary, the model may be implicitly semi-black-box. Also discuss practical limits on poisoning volume: can attackers realistically control the full labeling budget without detection? Consider operational detectability and stealth.
+
+- Applicability and Scope: Clearly state that PACDA targets active learning-based adaptation and may not apply to systems using fully automatic or sliding window retraining. Emphasize that the attack is suited to adversarial concept drift scenarios (e.g., malware, spam), less so in benign drift settings. A short discussion of these boundaries will help situate your contribution.
+
+- Ablation and Baselines: Add ablations to isolate key PACDA components (e.g., attack value assessment, problem vs. feature-space perturbations). Include a naive baseline (e.g., random noise injection) and compare to prior attacks like [23]. Also, vary the poison budget fraction to evaluate the attack’s efficiency.
+
+- Evaluation and Generalization: Consider evaluating PACDA under alternative sampling strategies (e.g., diversity-based) and include a discussion of cross-domain observations—why the attack may work better on some datasets than others. These insights would make the results more informative.
+
+- Defense and Ethics: Provide intuitive explanations for why tested defenses failed. For your defense, assess if it harms clean drift learning (false positives). If you foresee ways to improve it or combine with outlier detection, outline those. Ethically, clarify that the work aims to inform the defense and deployment of adaptive systems, and should consider the risks revealed.
+
+- Presentation: Ensure acronyms are defined consistently, fix typos (e.g., “CHALLENEGS”), and improve figure clarity and captions. Where possible, accompany metrics with intuition (e.g., why PACDA is more successful on APIGraph).
+
+Concrete steps for improvement
+------------------------------
+Justify Attacker Knowledge: Clearly explain how the attacker in PACDA obtains the necessary information. If the model outputs confidences, state that assumption; if not, discuss possible strategies (e.g., the attacker might infer uncertainty by observing model behavior). This will make the threat model more convincing. Additionally, mention any realistic limits on the fraction of data the attacker can poison without detection.
+
+
+Isolate Key Attack Components: Perform ablation experiments to determine the importance of each step in PACDA. For example, measure attack success when skipping the target value assessment phase, or when using only one kind of perturbation (feature-space vs. problem-space). Also compare PACDA’s effectiveness against a simpler baseline attack. These experiments will highlight why PACDA works so well and ensure the contribution is clearly delineated.
+
+
+Vary Poison Injection Rate: Experiment with different amounts of poisoning. Show how the attack scales if the attacker can only poison, say, 50% of the labeling budget vs. 100%. If success remains high even with fewer poison samples, that’s a powerful result to report. If success drops off, that suggests a possible defensive strategy (increasing budget or limiting per-cycle influence).
+
+
+Test Alternative Selection Strategies: If feasible, evaluate the attack (even on one dataset) with an alternative sample selection method (e.g., uncertainty + diversity or a different query criterion). Demonstrating PACDA’s effect beyond pure uncertainty sampling would strengthen claims of generality. If not, at least add a discussion acknowledging this and hypothesizing how PACDA might adapt or not in those cases.
+
+
+Deepen Defense Analysis: Expand on why existing defenses failed against PACDA, and analyze the new filtering defense’s trade-offs. For the camera-ready, consider a small evaluation of how many legitimate samples get filtered by your method, and whether adjusting the intra-cluster distance threshold can balance security vs. adaptation efficacy. Clarify that current defenses are inadequate, but outline directions for future defense improvements.
+
+
+Highlight Use Cases and Limitations: In the revision, explicitly state the intended use cases (e.g., adversarial drift in security domains) and limit scope (the attack is tailored to AL-based adaptation, not general continual learning). This will manage reader expectations and emphasize that the paper addresses a specific but critical niche. It might be worth adding a short paragraph in either Introduction or Discussion summarizing “When PACDA is a Threat” vs. “When PACDA may not apply”.
+
+
+Polish Writing and Typos: Clean up minor typos (like “CHALLENEGS” → “CHALLENGES” in Part III) and ensure consistency in terminology. Also, double-check that all important terms are defined before use (e.g., define “attack target” early on). A clearer definition of “attack success rate” (i.e., the percentage of target drift instances that remain misclassified after adaptation) would also help readers understand the reported metrics better.
+
+Ethical Considerations
+----------------------
+3. I don't see any ethical implications for this paper.

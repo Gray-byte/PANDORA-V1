@@ -1,0 +1,260 @@
+S&P 2026 Cycle 1 Paper #1319 Reviews and Comments
+===========================================================================
+Paper #1319 PANDORA: Targeted Poisoning Attacks against Concept Drift
+Adaptation with Active Learning via Uncertainty Ranking Manipulation
+
+
+Review #1319A
+===========================================================================
+
+Paper Summary
+-------------
+This work proposes PANDORA, a poisoning attack against systems that are continuously updated via continual learning (CL) methods and newly-labeled samples selected with active learning (AL) strategies.
+The attack manipulates the uncertainty ranking of AL to prioritize samples that are poisoned (with clean label), therefore leading to low accuracy of the model when it is updated with the new labeled data.
+
+Technical Correctness
+---------------------
+3. Fixable Major Issues
+
+Technical Correctness Comments
+------------------------------
+- The main issue is that the paper is missing a proper formalization of the attack. Specifically, the threat model is not clear, nor is the objective of the attacker. The rest of the paper is difficult to read if the formalization is not complete. The attack target is not discussed properly and it makes it very hard to understand the rest of the paper.
+- The problem-space perturbations should be discussed more in depth. Table 1 only lists examples, but why are these used rather than existing attack methods? For instance, on image data, the attackers could use more subtle manipulations than using sharpness on the edges. The same can be said about the security datasets.
+- The method uses SHAP to compute feature-level attribution of sample uncertainty. However, why the approach from Ledda et al. cannot be adapted to maximize uncertainty rather than reducing it?
+
+Scientific Contribution
+-----------------------
+6. Provides a Valuable Step Forward in an Established Field
+7. Establishes a New Research Direction
+
+Scientific Contribution Comments
+--------------------------------
+The paper contributes to analyzing the effect of poisoning data on CL-AL strategies. This is a relevant application, especially in the cybersecurity field.
+The contribution is good, however it lacks more ties with existing work and modeling (detailed in the rest of the review).
+
+Presentation
+------------
+3. Major but Fixable Flaws in Presentation
+
+Presentation Comments
+---------------------
+- Since the experiment on the APIGraph is mentioned as the most important, it would be better to include more details on this on the main paper. The rest of the experiments are less important, given also the venue, and therefore they can be moved to appendix, prioritizing instead full description of the attack on the selected use case. 
+-  "PANDORA effectively extends the misclassification duration for over 80% of the attack targets by at least one concept drift cycle across four datasets." This sentence is not clear at this point in the paper, it needs more context. 
+- It would be better to refer to the existing poisoning literature. Specifically, on the threat model, this attack could be framed better (e.g., clean-label attack).
+- The same should be done for the CL literature. Specifically, the threat model should discuss whether this attack can be adapted at poisoning future data or past knowledge (forgetting)
+- The second component of the poisoned sample generation is described less clearly in sect. 4.3, what does it mean "misguide the direction of the concept drift" ?
+- "Therefore, the attacker must exclude malware samples from the poisoning seed data to avoid reducing the attack effectiveness on the target xtar" This sentence is not clear. Does it mean that the attacker is only poisoning goodware?
+
+Comments to Authors
+-------------------
+Overall, the paper presents a good idea and extensive experiments. However, it would really benefit from improvements given in the rest of the review. The important part, the formalization, would serve as a good basis for future research. The explanation of the threat model and further analysis of realizability in the real world would also make the paper much more impactful.
+
+Additional comments: 
+
+- The threat model assumes that the models output not only the classification scores, but also the uncertainty ranking. What happens if the assumption is relaxed? For instance, the model could output the scores but leave to the user the interpretation of the confidence. Given that uncertainty can be computed also in other ways, it's perhaps unrealistic to assume that the confidence given to the user is the same one provided to the AL algorithm. Does this method generalize to the case of using other "surrogate" uncertainty ranking methods to select the samples?
+- Whereas the assumption of knowing the labeling cost is used in the literature, what happens if we relax this assumption (e.g., if the attacker does not know the exact labeling cost used by the system?)
+- What happens with the Fobus target in table 5? Why is this having this low ASR?
+
+Recommended Decision
+--------------------
+3. Weak Reject (Can be Convinced by a Champion)
+
+Reviewer Confidence
+-------------------
+3. Fairly Confident
+
+Should this submission be reviewed by the Research Ethics Committee?
+--------------------------------------------------------------------
+1. No
+
+
+
+Review #1319B
+===========================================================================
+
+Paper Summary
+-------------
+This paper proposes a new attack strategy for Concept Drift Adaptation with Active Learning (CDA-AL). The proposed method involves three key steps: (1) estimating the required poisoning ratio of the labeling budget based on the specified attack targets;
+(2) searching the testing data stream to identify potential poisoning seeds; (3) 
+Generating poisoned samples through adversarial perturbations in the problem space, further enhancing the attack effectiveness by misleading the direction of concept drift. In CDA-AL, the attack effect of this method is significant and stealthy, which reduces the cost of contaminated sample construction and improves the stability of contaminated sample generation.
+
+Technical Correctness
+---------------------
+1. No Apparent Flaws
+
+Technical Correctness Comments
+------------------------------
+There are no obvious problems with the article on technical level.
+
+Scientific Contribution
+-----------------------
+3. Creates a New Tool to Enable Future Science
+
+Scientific Contribution Comments
+--------------------------------
+The author introduces a novel poisoning attack against concept drift adaptation with active learning.
+
+Presentation
+------------
+3. Major but Fixable Flaws in Presentation
+
+Presentation Comments
+---------------------
+The following are some of the errors or ambiguities in the text:(1)the context of "strategy1" and "strategy2" in Figure 3 lacks clear indications; (2)the format of the up/down range in the table is not uniform; (3)in Figure 5, the legend is missing;(4)there is a typo in the title "ddataset" in Figure 7;(5)in Equation 14, punctuation is missing.
+
+Comments to Authors
+-------------------
+Thank you to the authors for the submission. In this paper, a poisoning method is proposed for the concept drift adaptation scenario based on active learning strategy.
+Considering that there are few studies on poisoning attacks against CDA-AL, this paper has certain exploratory significance in constructing an attack framework from this novel perspective. However, several limitations hinder the paper's acceptance, and my primary concerns are detailed below:
+
+1)Insufficient experimental coverage on datasets.
+The paper states that evaluations were conducted on five datasets, yet critical details for one dataset are lacking. Section 4.3 fails to explicitly describe the perturbation operations applied to the Androzoo dataset, and Sections 5.2 and 6 omit its evaluation results. 
+
+Notably, the APIGraph dataset has less severe drift, and experiments that rely on such datasets may not reflect performance in real-world scenarios with more pronounced drift. Comparatively speaking, the Androzoo dataset with the classical DREBIN method for feature extraction should have a more obvious drift, and adding the results of this dataset to the main results table can significantly increase the convincing conclusion.
+
+2)The background section is inadequate comprehensiveness.
+While the author's summary in the background section is concise, only describing the  steps of CDA-AL falls short of the main content covered in the article. Supplementing the existing logic and related references to the poisoning attack on CDA systems and CDA-AL can help readers understand the value of this work more clearly.
+
+3)Limitations of the evaluation results.
+As noted, several figures lack clear legends, impeding readability. More critically, the paper claims the attack scheme is highly stealthy, which is reflected in the fact that the F1 score does not decrease significantly. However, in the multi-target attack results of the malicious application detection dataset in Figure 7, the F1 score dropped by more than 10%. Especially in APIgraph datasets where drift is not severe, this performance degradation is more significant. If the authors give a reasonable analysis of the reasons for this, it will enhance the credibility of the conclusions.
+
+Recommended Decision
+--------------------
+2. Accept with Noteworthy Concerns in Meta Review
+
+Reviewer Confidence
+-------------------
+2. Highly Confident
+
+Should this submission be reviewed by the Research Ethics Committee?
+--------------------------------------------------------------------
+1. No
+
+
+
+Review #1319C
+===========================================================================
+
+Paper Summary
+-------------
+The paper present a method for targeted poisoning of concept drift adaptation. The idea is to exhaust the manual labelling budget and thus steer the concept adrift in an adversarial direction, where the direction is targeted towards specific directions.
+
+Technical Correctness
+---------------------
+2. Minor Issues
+
+Technical Correctness Comments
+------------------------------
+Datasets. It seems that the evaluation focuses on the APIGraph dataset and the two other Malware datasets-and remains unclear to me which experiments rely on MNIST and Spam, which however both seem datasets that are rather unfit to study this task. 
+For example, which dataset is depicted in Figure 3, and how does that figure look like for other data? Where is testing cycle 5?
+
+Assumed Knowledge. While the threat model denotes that the attacker is only able to submit 5% of the training data, it remains unclear to me whether choosing the attack seeds does not, implicitly, assumes larger (unrealistic) knowledge of the test data or data distribution.
+
+Scientific Contribution
+-----------------------
+6. Provides a Valuable Step Forward in an Established Field
+
+Scientific Contribution Comments
+--------------------------------
+While there has been work on poisoning online learning and attacking malware classification, the novelty of the targeted aspect of this work is to the best of my knowledge true. The authors may however also revisit older works like the one below on whether there is something related to discuss.
+
+Presentation
+------------
+2. Minor Flaws in Presentation
+
+Presentation Comments
+---------------------
+The presentation is overall good but the font in some plots is smaller than footnote size and the colors and not color-blind accessible.
+
+Comments to Authors
+-------------------
+The paper shows a new, targeted poisoning attack on an online learning tool handling concept drift. While the results are convincing and show that the attack works, there are open remaining questions on which datasets where chosen for the evaluation and how practically relevant the attack is.
+Most concerning is for me, that existing work shows how to evade Malware detectors [1,2] and online learning [3]-leaving only the targeted aspect of the attack as a contribution, and the combination of the previous aspects. While this indeed is a contribution, a venue like S&P may require a stronger contribution. 
+
+[1] Demetrio, Luca, et al. "Functionality-preserving black-box optimization of adversarial windows malware." IEEE Transactions on Information Forensics and Security 16 (2021): 3469-3478.
+
+[2] Grosse, Kathrin, et al. "Adversarial examples for malware detection." European symposium on research in computer security. Cham: Springer International Publishing, 2017.
+
+[3] Kloft, Marius, and Pavel Laskov. "Online anomaly detection under adversarial impact." Proceedings of the thirteenth international conference on artificial intelligence and statistics. JMLR Workshop and Conference Proceedings, 2010.
+
+Recommended Decision
+--------------------
+3. Weak Reject (Can be Convinced by a Champion)
+
+Reviewer Confidence
+-------------------
+2. Highly Confident
+
+Should this submission be reviewed by the Research Ethics Committee?
+--------------------------------------------------------------------
+1. No
+
+
+
+Review #1319D
+===========================================================================
+
+Paper Summary
+-------------
+The paper describes Pandora, an attack against concept drift adaptation methods that use active learning (CDA-AL), and also offers a defense against this type of attack. Pandora specifically focuses on uncertainty-based approaches, that is, the active learning component chooses the next sample to label based on an uncertainty metric. Consequently, a straightforward approach to make sure the classifier misses drifting samples or a drifting class is to ensure that other samples have higher uncertainty than those drifting samples. The paper demonstrates such an attack for different computer security datasets, in various settings/configurations, and also branches out to different detectors published in the past.
+
+Technical Correctness
+---------------------
+3. Fixable Major Issues
+
+Technical Correctness Comments
+------------------------------
+
+1. Unclear scope of uncertainty measurement.** From the descriptions in the paper, it was not entirely clear to me what data is used to measure a sample's uncertainty---the features or the raw binary? Things became particularly unclear when the authors were talking about problem-space attacks: Section 4.3.1 states that *"the problem space perturbation strategy refers to modifying the samples in the poisoning attack seed data [...] to generate new poisoned samples without altering the features of these samples."* However, this would only be useful if uncertainty is measured on the entire data rather than the (extracted) features, which is not how things (should) work.  
+   The last paragraph in this section, indeed, confirms the above: *"the sample is altered, but its features remain unchanged. Since existing uncertainty quantification methods are based on sample features, altering the problem space does not reduce the sample's uncertainty.* However, the authors seem to use the statement as a justification for why problem-space attacks are a suitable way of generating poisoned samples. Without clarifying the setting, it is not possible to fully judge the method's validity. 
+
+2. **Problem-space vs feature-space.** As mentioned above, the paper seems to use an ill-posed interpretation of what problem-space attacks are. This circumstance becomes apparent in Section 5.2.1 when the authors discuss two different attack strategies: (1) the problem-space variant, as questioned in the comment above, and (2) a version that operates on the extracted feature directly. Usually, the attack does not have direct access to the features but only the raw inputs (e.g., malware samples). For a problem-space attack, the adversary alters the raw input in a way that changes the features without compromising the input's functionality. Consequently, strategy 1 seems ill-posed, while strategy 2 is not practical
+
+Scientific Contribution
+-----------------------
+4. Addresses a Long-Known Issue
+8. Other
+
+Scientific Contribution Comments
+--------------------------------
+1. **Limited consideration of CDA-AL variants.** Pandora is specifically designed to attack uncertainty-based active learning, which, however, is one of several strains of active learning. Diversity-based approaches or hybrid techniques are not considered, and uncertainty-based AL is insufficiently explored. I understand that the authors chose a popular setting and compared it to recently published papers. However, I think that at the current stage of the AML community, and for a top-tier venue in particular, new attacks need to cover a broader scope and consider a more fundamental viewpoint rather than focusing on a specific setting.
+
+2. **Broken/Wrong code repository.** The provided link unfortunately does not resolve to a valid repository.
+
+3. **Assumption on the "Completeness of Testing Data Collection."** The authors mention a crucial limitation of their approach in Section 7. Pandora needs to know/collect/have access to testing data to compute the uncertainty ranking. The rationale that one can easily collect such data in the malware setting via VirusTotal is not backed up, and I would even argue that it is not correct. We cannot rely on a service like VirusTotal exhibiting the same drift as observed in the wild.
+
+Presentation
+------------
+2. Minor Flaws in Presentation
+
+Presentation Comments
+---------------------
+* **Extension of the method as part of the evaluation.** At the end of Section 5.2.1, the authors extend their method to adapt it to more limited attack settings. While I appreciate the effort (and the extension), the details should be provided in the method section, and then this version needs to be evaluated from beginning to end.
+
+* **Typos.** The paper contains several typos, such as missing periods, wrong capitalization ("Then We"), etc. Please have the paper carefully proofread by an unfamiliar reader.
+
+Comments to Authors
+-------------------
+#### Strengths
+
+* Interesting application-oriented setting/problem
+* extensive evaluation, considering various aspects
+* attack and defense
+
+#### Weaknesses
+
+* Limited consideration of CDA-AL variants (SC1)
+* Assumption on the "Completeness of Testing Data Collection (SC2)
+* Misunderstood concept of problem-space attacks (TC1+2)
+
+Recommended Decision
+--------------------
+3. Weak Reject (Can be Convinced by a Champion)
+
+Reviewer Confidence
+-------------------
+3. Fairly Confident
+
+Should this submission be reviewed by the Research Ethics Committee?
+--------------------------------------------------------------------
+1. No

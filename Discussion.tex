@@ -1,0 +1,154 @@
+%\section{Future Work and Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%2025-Usenix-投稿拒绝版本%%%%%%%%%%%%%%%%%%%%%%%%
+%\noindent In this study, we introduce an efficient framework for poisoning attack against concept drift adaptation (\pandora). 
+%In the following, we discuss some limitations of our attack method and outline potential future research directions.
+%
+%%\textcolor{blue}{Although \pandora may not extensively search for poisoning seed samples, we have multiple attack strategies to choose from, which do not compromise the overall attack effectiveness.}
+%
+%\textbf{Limitation of \pandora}: In the process of \pandora, it is necessary to rely on poisoned seed samples with high uncertainty scores. 
+%However, in some cases, such high uncertainty score samples may not appear in the test dataset of the current month or the attack value of new malware samples is unstable. 
+%To enable \pandora to adapt to such scenarios, we adopt strategies to relax the uncertainty score constraints or employ a freeze attack strategy.
+%Refer to Appendix \ref{Sec: Attack Value Unstable} for details about attack value unstable and freeze attack.
+%%Freeze attack strategy can effectively help us to solve the problem of inability to obtain attack seed samples. 
+%Nevertheless, we acknowledge that freeze attack may potentially reduce the success rate or stealthiness of the attack. 
+%In future research, we plan to overcome these limitation.
+%
+%%\textcolor{blue}{Currently, there is a lack of defense methods against \pandora. In the future, research could consider starting with the detection of poisoning samples.}
+%
+%%\textcolor{blue}{Our attack is versatile, so in the future, we plan to construct more concept drift datasets to verify the effectiveness of the attack.}
+%
+%\textbf{More Datasets for Validation}: In this research, we primarily concentrate on validating the effectiveness of our attacks using concept drift datasets of Android malware.
+%%The primary reason for this focus lies in the fact that currently, publicly accessible concept drift datasets in the security domain are predominantly centered around Android malware.
+%However, our \pandora has universal applicability to concept drift adaptation.
+%In the future, we aim to collaborate with security vendors to gather additional malicious objects from various scenarios, including spam detection, malicious PDF identification, and Windows malware detection. This will enable us to construct a more diverse and comprehensive concept drift dataset, and subsequently validate the effectiveness of our \pandora.
+%%%%%%%%%%%%%%%%%%%%%%2025-Usenix-投稿拒绝版本%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%2025-CCS-投稿版本%%%%%%%%%%%%%%%%%%%%%%%%
+%\subsection{Future Work}
+%In this study, we introduce an efficient framework for poisoning attack against concept drift adaptation (\pandora). 
+%In the following, we discuss the limitations of this work and point to several future directions.
+
+%\noindent \textbf{(i) Dependency to Attack Seed Samples:} 
+%The effectiveness of our attack demonstrates that searching for attack seed samples is a viable approach, and modifying samples can effectively alter their uncertainty scores, as illustrated in Figure~\ref{fig:Case Study of Uncertainty Dynamics}. However, \pandora still relies on attack seed samples to reduce attack costs. In future work, we aim to eliminate this dependency and explore seed-free approaches.
+
+% 这话不说了，说了没准被当作审稿意见
+%Specifically, precise handling of sample uncertainty in sensitive domain data will be a critical focus of our research.
+%\noindent \textbf{(i) Optimal Defenses Parameters:} 
+%We have successfully implemented effective defenses against the \pandora, further research could focus on enhancing the model's concept drift adaptation performance while simultaneously mitigating the attack success rate.
+%Moreover, during the defender's unsupervised clustering process, the number of clusters must be specified as a defense parameter. 
+%While different numbers of clusters correspond to varying levels of defense strength, future research could explore adaptive methods for setting defense parameters.
+%A future direction is to explore efficient techniques to compute the optimal defense parameters.
+%We have implemented effective defenses against the \pandora, future research could focus on improving concept drift adaptation performance while reducing the impact of attacks.
+%Additionally, in the defender's unsupervised clustering process, specifying the number of clusters is a key defense parameter. 
+%Since varying cluster numbers impact defense strength, future work could explore adaptive methods to compute optimal defense parameters at different time.\
+%\noindent \textbf{(i) Generalization to Continual Learning:} 
+%Although this study primarily focuses on the security of concept drift adaptation methods, we plan to extend our research to address the security challenges associated with continual learning in future work. 
+%Concept drift adaptation primarily addresses the challenge of evolving data distributions within a single task over time, while continual learning focuses on sequentially learning across multiple tasks. 
+%Despite their differences in the types of learning tasks they target, both approaches aim to tackle the challenges posed by the dynamic and ever-changing data environments of the real world.
+%Our study focuses on the security of concept drift adaptation methods, future work we want to study security challenges in continual learning.
+%While concept drift adaptation handles evolving data distributions within a single task, continual learning addresses sequential learning across multiple tasks.
+%Despite these differences, both approaches aim to address the challenges of dynamic and ever-changing real-world data environments.
+%This study focuses on the security of concept drift adaptation methods based on active learning.
+%In future work, we aim to extend our research to the security of continual learning, as both learning paradigms are designed to address the challenges posed by dynamic and ever-changing real-world data environments.
+%The continuous changes in real-world environments also present opportunities for attackers.
+% 这个举例不说了，免得审稿人顺着问出问题来
+%For instance, in the context of malware detection, a binary classification task on the same dataset falls within the research area of concept drift adaptation.
+%In contrast, a multi-class classification task for malware families aligns with the domain of continual learning, as new malware families continuously emerge.
+%\noindent \textbf{(ii) More Real-World Concept Drift Datasets:} 
+%Although research on concept drift detection and adaptation has advanced rapidly in recent years, most existing concept drift datasets are either synthesized from pre-existing datasets or have a limited time span, making them unsuitable for long-term concept drift studies.
+%Therefore, we plan to further collect more real-world concept drift datasets in the future to facilitate the advancement of research in this area.
+%We aim to make further contributions to the model security research community.
+%While concept drift research has advanced, most datasets are synthetic or have limited time spans. 
+%In the future, our work will focus on collecting more long-term concept drift datasets from the real world.
+%In industrial risk control, concept drift datasets are crucial as they directly affect physical safety.
+%\noindent \textbf{(ii) Robust Active Learning FrameWork:} 
+%The proposed defense method introduces a security component to existing CDA-AL approaches, resulting in increased computational costs. 
+%Future research will explore integrating poisoned sample filtering into the concept drift sample selection process, aiming to further reduce the cost of \pandora defenses.
+%Our defence method adds a security component to CDA-AL, increasing computational costs.
+%Future work will integrate poisoned sample filtering with concept drift sample selection to reduce \pandora defence costs and improve adaptation performance.
+
+\section{Limitation and Discussion}
+
+\textbf{Existence of Attack Seeds}.
+\pandora relies on poisoning seeds to craft effective poisoned samples.
+Experiments across four datasets show that suitable seeds can be identified for most targets.
+We also consider extreme cases with no seeds, such as when the attack target is the most uncertain sample in the testing data.
+In such cases, attackers can delay releasing the attack target and wait for the next concept drift cycle to obtain viable seeds, as long-term misclassification holds more value than immediate impact.
+Moreover, by leveraging SHAP-based feature space perturbation, we can elevate the uncertainty of less uncertain samples and use them as substitute seeds. 
+Thus, \pandora remains feasible even when seeds are temporarily unavailable.
+
+\textbf{Completeness of Testing Data Collection}.
+To launch \pandora, the attacker must collect testing data to compute uncertainty rankings for the attack targets.
+The completeness of the collected testing data directly affects the accuracy of these rankings.
+Our design introduces a fixed labeling budget consumption mechanism to address potential uncertainty ranking errors caused by incomplete testing data, as detailed in Section~\ref{Sec: Surrogate Model Training}.
+Furthermore, in real-world scenarios, attackers can leverage publicly available threat intelligence platforms, such as VirusTotal~\cite{Virustotaluploadinterface}, where new testing data samples are published monthly with unique hash identifiers.
+This allows attackers to align testing data more effectively, enhancing the efficiency of \pandora.
+
+%\subsection{Attacker Cost Analysis}
+%\label{Sec: Attacker Cost Analysis}
+%The attacker’s cost structure is complicated, including manual labeling, poisoned seed sample search, and sample generation costs.
+%The main labeling cost is used for the search of poisoned samples, which is much smaller than the annotation cost in the active learning process of the victim model, as the attacker only needs to focus on a small number of highly uncertain samples within each test cycle (accounts for 0.025 of the labeling budget.).
+%Attackers need to pay a specific cost for the construction of poisoned samples.
+%This part involves the construction of the corresponding problem space after the feature space is determined.  
+%Large language models can assist attackers in constructing poisoned samples, such as poisoned images and text.
+%The problem-space construction of malware samples is inherently more complex.
+%However, there are also mature tools available to use~\cite{virboxprotector}.
+%We tested mainstream tools and found that the average processing time was 75 seconds per sample.
+%The average size of the samples is 199.72MB, and the sample list is shown in Table \ref{tab: APK obfuscation time}. 
+%In addition to the fact that automated tools in the industry have significantly reduced the cost of constructing poisoned samples for attackers, existing academic research has shown that related construction is feasible, with the construction time for a single sample being 10 minutes~\cite{2023-CCS-Query-Based-Evasion-Attack}.
+%
+%\begin{table}[htbp]
+%	\centering
+%	\small
+%	\renewcommand{\arraystretch}{0.8}
+%	\caption{APK obfuscation Time}
+%	%\renewcommand{\arraystretch}{0.8}  % 调整该表格的行距
+%	\label{tab: APK obfuscation time}
+%	\begin{tabular}{c|c|c}
+	%		\toprule
+	%		\textbf{APK} & \textbf{Size (MB)} & \textbf{Obfuscation time} \\
+	%		\midrule
+	%		JD & 97.59 & 54.95s \\
+	%		Taobao & 57.03 & 78.98s \\
+	%		Little Red Book & 162.99 & 178.68s \\
+	%		Google & 315.67 & 93.32s \\
+	%		Wang VPN & 45.51 & 14.91s \\
+	%		WeChat & 264.04 & 136.76s \\
+	%		\midrule
+	%		\textbf{Average} & 199.72 & 90.72s \\
+	%		\bottomrule
+	%	\end{tabular}
+%\end{table} 
+
+%\textcolor{blue}{The time overhead for the attacker is significantly less than the time required for model updating, therefore the attack can be successfully executed.}
+
+%To fully demonstrate the rationality of attack in the problem space, we test the time cost of obfuscation operations.
+%We aim to demonstrate that attackers can quickly map poisoned samples from the feature space to the problem space. We select APKs of different types and sizes. 
+%Then, we test their repackaging and obfuscation time, as shown in Table \ref{tab: APK obfuscation time}. 
+%Based on the time-based test result, we can observe that the average attack time overhead for a single sample in the problem space is less than 5 minutes. 
+%Since the concept drift adaptation model is typically updated monthly, attackers have sufficient time to execute the Poisoning attack.
+% 从正文中摘出来的部分，也是时间开销相关的，整合到附录吧
+%After fully confirming the effectiveness of the attack method, we conduct tests on the attack time cost, as shown in Table \ref{tab: Attack time cost}.
+%We evaluat data from 2013 to 2018 and found that the current optimal concept drift adaptation method has an average feature space attack time cost of 5 minutes and 49 seconds. 
+%Because of the different sizes of malware packages, the time cost for problem space attacks varies significantly.
+%Therefore, we select various types of software, including e-commerce, gaming, and social media, to test the time cost of problem space attack operations. 
+%The experimental results show that the average time cost for a single sample problem space attack operation is 6 minutes and 8 seconds. 
+%In summary, the total time cost of the entire attack process is significantly lower than the model update frequency of mainstream concept drift adaptation methods.
+
+\textbf{Use Cases and Limitations}.
+\pandora is primarily designed for adversarial concept drift scenarios in the security domain (e.g., malware or spam detection), where misclassified attack targets still deliver expected functionalities, making the attack less likely to be noticed by end users.
+While \pandora also achieves high attack success in benign drift settings (e.g., image recognition, as shown on the MNIST dataset), the persistent and noticeable misclassifications are more likely to trigger user complaints, thereby reducing attack stealthiness.
+
+Our evaluation of attack effectiveness primarily focuses on the APIGraph~\cite{2020-CCS-APIGraph} dataset, as it spans a long time period and represents a real-world concept drift scenario.
+However, due to the lack of large-scale, publicly available datasets, our evaluation is limited to synthetic datasets for real-world concept drift scenarios in domains such as image and text.
+Such scarcity of real-world datasets is also a well-known limitation in existing concept drift research~\cite{ganguly2023online,2023-Usenix-chenyizhen,2021-Usenix-CDAE}.
+
+\textbf{Future Work}.
+Another important future direction is to extend our research to the security of continual learning~\cite{han2023data,guo2024persistent}.
+As both concept drift adaptation and continual learning are machine learning paradigms designed to address the challenges posed by ever-changing real-world data environments~\cite{wang2024comprehensive}, they share similar motivations. 
+However, continual learning typically assumes the emergence of new tasks over time, whereas concept drift assumes a fixed task with shifting data distributions.
+This key difference motivates our future work, which aims to explore the impact of data poisoning attacks within continual learning frameworks.
+Moreover, targeted poisoning attacks in the context of CDA-AL remain underexplored, resulting in a limited number of effective defense strategies—particularly in security domains such as malware detection.
+As future work, we aim to further enhance the robustness of CDA-AL against targeted poisoning attacks.
+
+\noindent 

@@ -1,0 +1,171 @@
+USENIX Sec '25 Cycle 1 Paper #113 Reviews and Comments
+===========================================================================
+Paper #113 CDAD: Concept Drift Adaptation Denial Attack in Android Malware
+Detection
+
+
+Review #113A
+===========================================================================
+
+Paper summary
+-------------
+The paper proposes a novel poisoning attack against malware detection systems that automatically adapt to concept drift through active learning. The attack aims to hide new malware samples from the system by extending the time frame required for the system to identify the malware. In detail, the attack creates and injects additional benign samples with high uncertainty scores into the (re-)training dataset, such that these get picked by the AL algorithm for relabeling instead of the malware samples. The attack is examined in both white-box and black-box settings, in which it shows high success rates.
+
+Main reasons to accept the paper
+--------------------------------
++ Attack against AL-based systems. Novel poisining attack against malware detection systems.
++ Attack evaluation. Extensive evaluation in white-box and black-box setting.
+
+Main reasons to reject the paper
+--------------------------------
+- Missing defense. No defense proposed and examined.
+- Attacker bias. Several assumptions in favor for the attacker.
+- Limited evaluation scope. Solely examined for Android malware.
+
+Comments for authors
+--------------------
+Research on active learning-based techniques to overcome the limitations of
+existing malware detection systems has recently received a lot of attention from
+the security research community. In contrast, research on attacks against
+AL-based methods has been mostly out of scope so far. As these systems are
+always deployed in hostile environments, I appreciate the paper's attempt to
+close this research gap and explore poisoning attacks, as these are a realistic
+threat to these systems. The attack is designed such that the overall detection
+performance of the model is not significantly affected, which is essential to
+avoid raising suspicion. Its effectiveness is then assessed against four
+state-of-the-art methods in both black-box and white-box settings, demonstrating
+that current systems cannot cope with it.
+
+While I believe that the proposed attack is effective against current detection
+systems, the overall contribution of the paper still seems too limited to me due
+to various reasons:
+
+ __Missing defense__. The idea of submitting additional samples with high
+uncertainty scores, such that they get picked by the active learning approach,
+is straightforward. It's not particularly surprising that such an attack works
+against current systems, which mainly concentrate on compensating for concept
+drift (which is still an open problem). Therefore, the more interesting research
+question is how to defend against this type of attack. Unfortunately, the paper
+does not provide a proper answer to this question.
+    
+__Attacker bias__. Additionally, there are several assumptions that favor the
+attacker. In particular, the current attack ignores the possibility that the
+poisoning procedure might introduce side-effect features that could lower its
+effectiveness in practice. Furthermore, it's assumed that the attacker and
+service sample from the exact same distribution, which is not often the case in
+practice. Extending the evaluation to consider these factors would help
+understanding the actual practical impact of such an attack better.
+    
+In summary, while I appreciate research on attacks against AL-based detection
+systems, the paper should also provide answers to the challenging questions of
+how to defend against this kind of attacks.
+
+### Additional comments
+
+- There is already some work on active learning in adversarial settings, which have neither been cited nor discussed in the paper (see [1,2]).
+- Table 1: I recommend clarifying that the table only shows poisoning attacks.
+- I assume that target and surrogate model are always trained on distinct datasets. However, the paper refers to both datasets as $D_{t}^{i}$, which is confusing. I recommend clarifying the difference in the notation.
+- Section 4.2.2. provides a discussion that the attack works on different feature spaces. But since the APIGraph features are derived from the Drebin features, this is a very strong claim. Ideally, another distinc feature set is added here as well.
+- The evaluation lacks information about the standard deviation of the ASR.
+
+### Typos and Nitpicks
+
+- The paper contains a number of grammar and spelling mistakes. Below are some that I found but the paper should be carefully double-checked.
+- Page 5, Section 3.3.1: We collect new data samples [...] identifies [...] obtains $\rightarrow$ identify, obtain
+- Page 5, Section 3.3.1: we do not care [...] but only needs $\rightarrow$ need
+- Page 8, Section 4.1: hyperparameter settings provided $\rightarrow$ are provided
+- Page 8, Section 4.1: varients $\rightarrow$ variants
+- Page 9, Section 4.2.1: we select F1 score [...] for target model $\rightarrow$ the F1 score, the target model
+- Page 12, Section 4.6: We evaluat $\rightarrow$ evaluate
+
+### References
+
+1. Miller et al., Adversarial Active Learning, AISec 2014
+2. Vicarte et al., Double-Cross Attacks: Subverting Active Learning Systems, USENIX Security 2021
+
+Recommended decision
+--------------------
+4. Reject
+
+Confidence in recommended decision
+----------------------------------
+2. Highly confident (would try to convince others)
+
+Ethics consideration
+--------------------
+3. No (risks, if any, are appropriately mitigated)
+
+Open science compliance
+-----------------------
+1. Yes.
+
+Questions for authors' response
+-------------------------------
+- Does Figure 6 show a t-SNE plot?
+- How many samples did you use in each month to train the surrogate and target model? Were these datasets always distinct?
+- Does the attack still work if the malware sample(s) that should be hidden have the highest uncertainty score(s)?
+
+
+
+Review #113B
+===========================================================================
+
+Paper summary
+-------------
+The authors propose a novel poisoning attack (CDAD) that leverages the fact that current concept drift adaptation strategies primarily focus on high-value samples for updates. By perturbing the features of benign samples, they generate high-uncertainty benign poisoned samples. The goal of the attack is to make the model prioritize learning these benign sample patterns during retraining, thus reducing the attention paid to malware features and ultimately prolonging the survival time of the malware. The authors achieved over 80% attack success rates across four mainstream concept drift adaptation strategies.
+
+Main reasons to accept the paper
+--------------------------------
+1. The idea of the paper has some novelty, as it leverages the limitations of existing concept drift methods to poison the retraining process during active learning by targeting the training set.
+2. The paper provides a detailed summary of existing concept drift methods, making it very easy to understand.
+
+Main reasons to reject the paper
+--------------------------------
+1. The motivation example is unclear.
+2. The threat model is not rigorous.
+3. The challenges claimed by the authors are problematic.
+4. The method section is unclear and lacks innovation.
+5. The experimental setup is unclear
+
+Comments for authors
+--------------------
+1. The motivation example is unclear. The authors claim that there are vulnerabilities in existing concept drift strategies (in Section 1), but the related evidence is not rigorous. In Appendix Figure 7, the time and distribution of the training and test sets are unclear, making it difficult to determine whether the budget of 300 samples is sufficient. From the data in January, the test samples are at least 1,000, and the unselected samples will carry over into February, meaning that there will inevitably be a large number (around 700) of escape samples from January. Therefore, this experiment seems unreasonable.
+
+2. The black-box scenario in the threat model contradicts the subsequent method (in Section 3.3.1). The subsequent method involves training the surrogate model in a white-box scenario, including known training data and parameter information. Throughout the paper, I believe the authors’ method is based on a white-box setting, but in the experimental section, both white-box and black-box scenarios are tested. Therefore, it would be more reasonable to remove the black-box setting from the threat model.
+
+3. The challenges claimed by the authors are problematic. The first challenge merely describes a phenomenon. The third challenge seems to be more of a characteristic compared to other attack methods. The fourth challenge appears to introduce a new problem, but the authors do not solve it. Therefore, Table 1 seems absurd, as it looks like a comparison of differences between various attack methods rather than actual challenges.
+
+3. The method section is unclear and lacks innovation. In section 3.3.2, the authors introduce a method for assessing the attack value of samples and claim that selecting "false negative" samples (malware samples that can easily escape at the boundary) is more valuable. However, in section 3.3.3, the module should select poisoned seeds for the attack based on the previous module, but it is surprising that the authors chose benign samples instead of false negative samples. Additionally, the uncertainty assessment for the generation of poisoned samples (section 3.3.2) is based on existing methods. In section 3.3.3.2, the feature flipping technique used by the authors does not consider the problem of reversing between the problem space and feature space, directly modifying the features, which could result in applications that do not exist in the real world. 
+
+4. The experimental setup is unclear, and the conclusions are unreliable. The entire setup of the training set is ambiguous (i.e., it is unclear when the initial model was established), as well as how the subsequent test set simulates concept drift. In addition, in section 4.1, the authors claim that they prioritize selecting new malware samples as test targets, which means that since the model has not learned these samples, the attack success rate will naturally be high. Finally, in section 4.2.1, the authors claim that their attack is more effective on HCC because HCC selects retraining samples based on the loss function, but CADE also selects based on the loss function. Additionally, Table 3 does not indicate the experimental setup, and it is unclear whether the metrics are averages or based on a specific month. 
+
+
+Besides the detailed major concerns above, here are some other minor issues and details:
+
+1. The organization of the method section is difficult to follow, as it goes down to the fourth-level headings. Additionally, there is a large amount of content from other papers, making it appear like a patchwork of existing works.
+
+2. The surrogate model appears to be of little value if it’s a white-box attack.
+
+3. The method attempts to poison a batch of benign samples. If the ratio of benign to malware samples is set at 1:1, wouldn’t the effect be significantly worse? Currently, it seems that the authors' ratio might be 10:1.
+
+4. Regarding the feature perturbation method, malware samples undergo a positive flip, while benign samples undergo a negative flip. This is very confusing—what are positive and negative flips? The representation of both original and altered features is unclear to readers.
+
+5. The two experimental setups in section 4.2.2 seem identical, as both simply vary the budget settings.
+
+6. The " API" in Table 5 is an incorrect name; the tool should be called "APIGraph." Appendix B is also confusing, as the authors use an uncommon feature extraction method (from a non-CCF-ranked paper) to construct the dataset. Therefore, it is unclear which feature extraction methods are actually used in this paper.
+
+Recommended decision
+--------------------
+4. Reject
+
+Confidence in recommended decision
+----------------------------------
+2. Highly confident (would try to convince others)
+
+Ethics consideration
+--------------------
+3. No (risks, if any, are appropriately mitigated)
+
+Open science compliance
+-----------------------
+1. Yes.

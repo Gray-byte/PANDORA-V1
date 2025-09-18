@@ -1,0 +1,215 @@
+ACM CCS 2025 A Paper #753 Reviews and Comments
+===========================================================================
+Paper #753 Devil Alliance: Poisoning Attack against Concept Drift
+Adaptation based on Active Learning with Multi-Attacker Collaboration
+
+
+Review #753A
+===========================================================================
+
+Paper summary
+-------------
+This paper proposes PACDA, a poisoning attack framework that targets models which use active learning-based concept drift adaptation technologies such as uncertainty sampling. The authors perform experiments across toy and real-world datasets which achieve high attack success rates. Furthermore, they propose an adaptive sample filtering method as a defense against PACDA attacks.
+
+Strengths / Reasons to accept
+-----------------------------
++ Focuses on vulnerabilities of regular model retraining which is highly relevant to the technology industry
++ Use the findings of the attack to propose a novel defense which appears relatively successful
+
+Weaknesses / Reasons to reject
+------------------------------
+- Setting and description of the attack is unclear, making the evaluation much harder to interpret
+- Attacker coordination section is not well motivated or well evaluated
+- Real world impact is overestimated—all of the examples given are based on assumptions
+
+Constructive comments for author
+--------------------------------
+### Comments for authors
+
+I enjoyed reading this paper which tackles an important subject and has great potential. The manipulation of uncertainty sampling in active learning is a promising avenue for abuse and the authors use this to propose stronger defenses.
+
+I found the biggest weakness of the work to be a lack of clarity regarding the setting and the attack itself, that I hope could be resolved with some (substantial) rewriting to better highlight the impact of the work. 
+
+Below I go into this in more detail, which I hope the authors find useful in future revisions of the paper. 
+
+### Lack of clarity
+
+#### Attack itself is unclear
+
+The work suffers from a lack of clarity regarding the attack setting and aims which makes it more difficult to judge the impact of the experiments. To this end, I still don’t feel like I understand the purpose or methodology of the attack itself. 
+
+Is the attack to: 
+
+1. Get the classifier to select the least informative examples for retraining so that it doesn’t adapt to drift over time? or 
+2. Exploit the uncertainty sample query strategy to get poisoned examples prioritized for retraining?  
+
+There are many contradictory statements throughout the work, e.g., 1/ is supported by the statement in §4.3.3: “The core attack goal of the attacker is to prevent helpful samples from being learned by the victim model.”. However, the threat model in §3 states “The goal is […] to manipulate inference outcomes” which suggests direct manipulation akin to a backdoor attack.
+
+This is exacerbated by confusion about clean-label attacks and conflation of active learning (implying a ‘human-in-the-loop’ paradigm) with other forms of online/continual learning throughout. 
+
+For example, in active learning, 2/ does not seem possible under the clean-label assumption: the attacker cannot flip labels because a manual reviewer will always correct it. But the authors seem to argue otherwise in §5.2: “attackers can generate poisoned samples with consistent features but flipped labels, adhering to the clean-label assumption through manual validation”. 
+
+The detailed example in A.E2 doesn’t help: the authors claims that “using large language models (LLMs), attackers can generate poisoned samples with consistent features but flipped labels, adhering to the clean-label assumption through manual validation”, where the example spam email contains a malicious hyperlink. But here assume the manual labeling protocol contains the node “does the email contain an obscured suspicious hyperlink?” it would get the correct label. Is the argument that in a particular feature space, this would be difficult to distinguish from benign examples and degrade performance after retraining? 
+
+Similarly, the statement: “A larger label budget amplifies the impact of poisoned samples on the victim model’s selection process, boosting attack success rates” isn’t intuitive to me. If the defenders label 5 examples and the model learns nothing new, vs. the defenders label 100 examples and the model learns nothing new, how can ASR change between the two scenarios? 
+
+Again I’m uncertain about the experiment results for the proposed defense ICDF. The authors state that “model performance during some periods surpassed the optimal performance of concept drift adaptation”. Again, how can this happen? The optimal performance of concept drift adaptation would retrain using examples that provide the maximum amount of information gain, so how can ICDF outperform this? Consider that ICDF could also be used as a query strategy, so by definition it cannot do better than the optimal performance (which would be itself in that case).   
+
+Some of these issues might be resolved by better separating the ‘framework’ generalizable aspects of PACDA, and the specific implementations for particular settings and target classifiers. 
+
+#### Concept Drift details 
+
+There is also some lack of clarity in the treatment of concept drift and prior work. 
+
+The concept drift definition doesn’t seem complete, $P(Y)$ and $P(X|Y)$ are mentioned, but another source of concept drift comes in the shift of $P(Y|X)$ — e.g., where two examples with the same feature space representation have different ground truth labels (i.e., a key feature is missing).   
+
+The authors state “The performance degradation is particularly severe on BODMAS” which is strange framing: robustness to drift is a property of the feature space or the classifier, not the dataset itself. 
+
+The Data Analysis in §4.1 also doesn’t make sense for similar reasons as there’s no description of what the feature space is. 
+
+The authors should clarify the scope of the classifiers they are referring to under the CDA-AL umbrella. Two of the main examples cited, Transcend and CADE, are not active learning solutions in and of themselves, although the scores they produce could feasibly be used as query strategies, as alternatives forms of uncertainty sampling. The authors should provide more details to describe whether this is indeed how they’re being used in the experiments. 
+
+#### Setting of the coordination 
+
+As another example, the coordinated attacker scenario is not well motivated or evaluated. 
+
+The authors state that “it is crucial for attackers to coordinate their attack modes and targets” but there is no strong argument why this is the case. An experiment shows that multiple attackers can induce a stronger effect by sharing the cost of the attack between them, but is there any interaction between uncoordinated attackers that reduces the feasibility of their individual attacks? 
+
+What is the realistic setting for this coordination, how is the complete set of attackers expected to find each other? 
+
+Following this, how are attackers authenticated? What’s to stop defenders joining the channel and performing a quasi-Sybil attack to influence the decision and neutering the impact of the attack (e.g., voting to target a dummy class which they can use to filter out attack samples)?  
+
+### Real-world impact overclaimed
+
+Frequent incremental retraining is a crutch for the tech industry, and I think the authors are right to highlight the impact. However, the real world attack feasibility analyses do not seem to actually support the feasibility of the proposed attack:  
+
+- The GiftHorse example should be removed or reworded—I understand the authors are trying to emphasize the seriousness of poor malware detection, but the associated impact with poisoning and active learning is entirely hypothetical.
+- The case study for Baidu’s model is similarly problematic. There is no evidence provided (in the text or reference provided) that Baidu use active learning or uncertainty sampling for any online models. This makes it somewhat irrelevant to the paper.
+- ‘[…] 1.84 million USD per month [is a] substantial financial burden for security companies’ is not an objective statement (particularly for major tech companies this is not a significant amount of money, e.g., Palo Alto Networks expects annual revenue of ~$9B in 2025).
+
+There are more minor examples of overclaiming in the positioning of the work: 
+
+The intro statement “we propose the first Poisoning Attack against Concept Drift Adaptation” is not correct. 
+
+Many poisoning attacks assume that the poisoned examples are being injected during some retraining process—this is one of the most obvious ways to get poisoned examples into a training label supply in a realistic setting (as opposed to tampering with the initial training set). 
+
+Similarly the statement, “Unlike previous studies on data poisoning attacks […]” needs substantiating. 
+
+---
+
+#### Nitpicks 
+
+- Pseudo labels implies that they’re used for training, it would be better to describe them as ‘predicted labels’ until §4.3.1 when the attacker uses the predicted labels as pseudo labels for the surrogate model.
+
+- “attackers inject poisoned samples during the victim model’s sample selection phase” — as I understand this isn’t correct: the samples are injected during inference, but are expected to corrupt the sample selection phase later on.
+
+- As written, the non-backdoor attacks TPA definition is the same as the UPA definition. Should it read that non-backdoor TPAs have a set source class but no set target class?
+
+- “to create a concept drift sample dataset” — the uncertain examples may not be due to concept drift, even if the distribution is stable over time there may still be examples close to the decision boundary (for example).
+
+- The classification method of data poisoning attacks currently lacks strict and unified standards”. 
+Do you mean there isn’t a well established taxonomy for poisoning attacks? This needs substantiating.
+
+- “Recent research highlights uncertainty as the primary metric for determining whether a sample is helpful.” requires a citation
+
+- APIGraph is missing citations (e.g., in §5.3)
+
+- It would be best to move Table 1 to the Appendix (and expand to include all notation—particular what’s used in the attack description).
+
+- All figures (and tables as well if possible) should be aligned to the top of the page—there are many instances of orphan lines at the bottom of the page which make it harder to follow.
+
+- It’s customary to place footnote numberings after punctuation so reduce whitespace, e.g.,: ‘Metrics$^2$.’ → ‘Metrics.$^2$’; ‘overhead$^4$.’ → ‘overhead.$^4$’ (§5)
+
+- “As a result, it” → “As a result, they” §1)
+
+- “Smples” → “Samples” (Figure 1)
+
+- ‘Moreover’ → ‘moreover’ (§4.1)
+
+- ‘ttckers’ → ‘Attackers’ (Algorithm 1)
+
+- ‘Euqation’ → ‘Equation’ (§4)
+
+- ‘$u^*_{tar}$ , ‘$‘u^*_{tar}$, ‘ (§4)
+
+- ‘sample enters’ → ‘samples enter’ (§5)
+
+- ‘Balck-Box’ → ‘Black-box’ (§5)
+
+---
+
+[1] A unifying view on dataset shift in classification. Moreno-Torres et al. Pattern Recognition, 2012.
+
+Does the paper raise ethical concerns?
+--------------------------------------
+1. No
+
+Reviewer expertise in this domain
+---------------------------------
+4. Expert (I've worked on this topic domain or a closely related topic
+   domain)
+
+Reviewer confidence
+-------------------
+3. Quite confident
+
+Overall merit
+-------------
+2. Weak reject
+
+
+
+Review #753B
+===========================================================================
+
+Paper summary
+-------------
+This paper studies the problem of evaluating the vulnerabilities of active-learning based methods for combating concept drifts in security critical applications such as malware detection. The authors propose two types of attacks, indiscriminate and targeted attacks to comprise the active-learning based models that are originally designed for combating the concept drifts.
+
+Strengths / Reasons to accept
+-----------------------------
+1. The idea of evaluating the robustness of concept drift detection under adversarial environment is interesting.
+2. The evaluations are done on different types of datasets.
+
+Weaknesses / Reasons to reject
+------------------------------
+1. There are many parts in the paper whose motivations are unclear. 
+2. The assumptions made in the paper are rather unrealistic and some details are vaguely described. 
+3. The proposed attacks lack technical novelty and did not provide sufficient insight on the vulnerabilities of concept-drift detections under poisoning attacks.
+
+Constructive comments for author
+--------------------------------
+I have the following major concerns:
+1. I do not like the term "untargeted poisoning attacks", as "indiscriminate" poisoning attacks have been widely adopted as a standard terminology in the poisoning literature.
+2. I did not get clear motivation on why there has to be multiple attackers and it seems different types of attackers have to perform the attack at different time points, which seem trivial. Furthermore, there is no clear motivation on trying to protect the sensitivity of the attackers using MCP protocol. This part makes me feel like the paper does not have a coherent theme. 
+3. Based on the description, it seems the attacker knows the threshold for selecting the uncertain samples for retraining. How can the attacker know the threshold for selecting the uncertain samples? There should be some ablation studies on cases where the attacker does not know the selection threshold. Related to this, I am also confused by the notation \beta, as it seems to indicate both the threshold on the confidence as well as the size of the uncertain samples that are selected for relabeling. 
+4. The assumption made in the paper is, attackers can generate as many samples as possible to completely control the final selected uncertain samples by the victim model. Traditional poisoning attacks focus on leveraging a small fraction of poisoning points to impact the model performance at global scale, and the 100% poisoning ratio setting in this paper seems rather trivial and straightforward. 
+5. It still remains unclear how the attacker ensure the poisoned model will misclassify the target samples into a particular wrong class, when the actual labeling of the uncertain sample is completed through manual labeling and is outside the control of adversaries. This part is particularly unclear for malware samples, on how to generate the "clean-label" poisoning samples for malware.
+
+Questions for authors’ response
+-------------------------------
+1. Can the attack be performed if are targeted attackers and untargeted attacks are mixed and there is no way to negotiate this?
+2. Please provide some clear motivating examples on why protecting the sensitive information of attackers is important.
+3. What is the performance when the attacker can only poison a small fraction of the set of uncertain samples?
+
+Does the paper raise ethical concerns?
+--------------------------------------
+1. No
+
+Concerns to be addressed during the revision/shepherding
+--------------------------------------------------------
+Replace untargeted poisoning attacks with "indiscriminate poisoning attacks".
+
+Reviewer expertise in this domain
+---------------------------------
+3. Knowledgeable (I don't necessarily work in this topic domain, but I work
+   on related topics or I am cognizant of the work in this domain in recent
+   years)
+
+Reviewer confidence
+-------------------
+3. Quite confident
+
+Overall merit
+-------------
+1. Reject
