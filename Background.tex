@@ -28,8 +28,6 @@ For concept drift cycle $n$, the concept drift adaptation process generally cons
 	The uncertainty score $\bm{\mathrm{u}}_{i}$ of $\bm{\mathrm{x}}_{i}$ is measured.
 	For example, uncertainty can be measured as one minus the maximum softmax output of the network~\cite{2023-Usenix-chenyizhen}:
 $\bm{\mathrm{u}}_{i} = 1-\max(\bm{\mathrm{c}}_{i},1-\bm{\mathrm{c}}_{i})$.
-	%In addition to the commonly used confidence-based method described above, there are various other approaches for uncertainty quantification.
-	%For details, see Section~\ref{Sec: Attack Influencing Factors}.
 	We use $uncer()$ to denote uncertainty measures in the following discussion.
 	
 \emph{Step III}: High-uncertainty samples are selected from the testing data $\bm{D}_{te}^{n}$ as concept drift samples $\bm{D}_{dr}^{n}$.
