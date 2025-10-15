@@ -14,14 +14,27 @@ As a result, CDA-AL improves the model's prediction accuracy on evolving data di
 %By learning from these informative yet uncertain samples, the model can adapt to the concept drift.
 %The number of selected samples is referred to as the active learning labeling budget~\cite{hacohen2023select}, which represents the most costly human analysis resource in CDA-AL.
 
+Existing research indicates that concept drift adaptation methods are vulnerable to data poisoning attacks.
+This vulnerability arises because concept drift adaptation methods often incorporate selected samples from the test data into the training dataset.
+Korycki et al.~\cite{2023-CCF-B-Adversarial-concept-drift-detection-under-poisoning-attacks} proposed a concept drift poisoning attack. In this attack, mislabeled concept drift samples are injected into the victim model’s training data to degrade its performance.
+However, the threat model assumed in the above study differs from real-world concept drift adaptation, leading to three key limitations.
+(1) Existing work assumes attackers can directly inject poisoned samples into the training set.
+This contradicts CDA-AL, which adds only high-uncertainty samples to the training set.
+(2) Prior work allows attackers to maliciously alter labels of poisoned samples~\cite{2022-ACM-Computing-Survey-Threats-to-training}. This is ineffective against active learning methods like CDA-AL. In CDA-AL, human annotators label new training data to ensure correctness.
+(3) Poisoning attacks fall into two types: targeted and untargeted, based on their impact on the victim model’s performance.
+Untargeted poisoning degrades the victim model’s overall performance. Targeted poisoning affects only the model’s predictions for specific attack targets.
+Prior security research focuses on untargeted attacks.
+In security-sensitive settings like malware detection, a drop in overall model performance raises alerts and reduces attack stealth.
+The above limitations make existing concept drift poisoning attacks impractical in CDA-AL.
+
 Because CDA-AL continuously collects testing data stream and selects retraining samples from it, the framework may become vulnerable to poisoning attacks. 
 However, unlike traditional poisoning attacks that inject malicious samples directly into the training dataset in a batch manner~\cite{2022-ACM-Computing-Survey-Threats-to-training, 2024-SP-Offline-RL-Backdoor,2018-NIPS-Poison-frogs,2018-SP-poisoning-regression,2024-TIFS-Backdoor-Contrastive-Learning}, attacks against CDA-AL must exploit its adaptive learning process by planting poisoned samples in the testing data stream. 
 This is a challenging task, as attackers must deceive the retraining process into mistakenly selecting poisoned samples for labeling, which are then incorporated into the retraining dataset—a scenario that, to the best of our knowledge, has not been explored before.
 
-The closest prior work is poisoning attacks or adversarial perturbations on CDA~\cite{2023-CCF-B-Adversarial-concept-drift-detection-under-poisoning-attacks, apruzzese2024adversarial};
-however, this area remains largely underexplored. 
-These studies typically assume that poisoned samples from the testing data stream are guaranteed to be incorporated into the retraining dataset, which does not align with the selective sample acquisition mechanism used in CDA-AL. 
-Moreover, their focus is primarily on untargeted attacks aimed at degrading overall model performance, overlooking the design of targeted poisoning strategies that can preserve stealth and global accuracy while manipulating specific predictions.
+%The closest prior work is poisoning attacks or adversarial perturbations on CDA~\cite{, apruzzese2024adversarial};
+%however, this area remains largely underexplored. 
+%These studies typically assume that poisoned samples from the testing data stream are guaranteed to be incorporated into the retraining dataset, which does not align with the selective sample acquisition mechanism used in CDA-AL. 
+%Moreover, their focus is primarily on untargeted attacks aimed at degrading overall model performance, overlooking the design of targeted poisoning strategies that can preserve stealth and global accuracy while manipulating specific predictions.
 %However, CDA-AL operates on a continuously arriving testing stream, conventional poisoning methods~\cite{2024-SP-Offline-RL-Backdoor} \ziming{many more citations} that directly inject poisoned samples into the training set are no longer applicable. 
 %Instead, the attacker must embed poisoned samples into the testing stream~\cite{2023-CCF-B-Adversarial-concept-drift-detection-under-poisoning-attacks}, allowing them to be indirectly included in retraining and thus degrade model performance.
 %Nevertheless, existing poisoning attacks targeting concept drift typically assume that poisoned samples from the test stream are guaranteed to enter the training set, overlooking the selective sample acquisition mechanism employed by CDA-AL~\cite{2023-Usenix-chenyizhen}.
@@ -71,7 +84,6 @@ These findings highlight the urgent need for new defense mechanisms against \pan
 To address this, we propose a poisoned sample filtering approach based on intra-cluster distance to mitigate the effects of \pandora.
 Under the same poisoning attack settings, our defense method successfully prevents the extension of misclassification duration for 40\% of the attack targets.
 The contributions of this paper are as follows:
-
 \begin{itemize}
 	\item We present \pandora, the first targeted poisoning attack against CDA-AL.
 	\pandora causes the misallocation of labeling budget to poisoned samples by manipulating the uncertainty ranking of testing data, leading to misclassification of attack targets during the adaptation process.
