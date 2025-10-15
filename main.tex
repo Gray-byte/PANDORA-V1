@@ -125,22 +125,19 @@
 		
 		Machine learning models have achieved remarkable success across various domains.
 		Unfortunately, due to the continuously changing distribution of test data, deployed models can quickly become outdated—a phenomenon known as concept drift.
-		To address this, Concept Drift Adaptation methods based on Active Learning (CDA-AL) have been proposed to enhance model performance.
-		However, limited research has been devoted to analyzing its security.
-		This paper focuses on the robustness of CDA-AL, particularly under data poisoning attacks.
-		The introduction of active learning techniques in CDA-AL makes the design of poisoning attack strategies more challenging.
-		Therefore, we conduct a poisoning attack study targeting CDA-AL.
-		We propose a method that manipulates the uncertainty ranking of test samples by crafting poisoned examples, leading to the misallocation of the victim model's labeling budget and preventing it from effectively learning the attack target.
-		Furthermore, we propose a novel poisoned samples generation method that leverages naturally occurring concept drift samples as the foundation. 
-		By incorporating problem space perturbations and uncertainty-based feature attribution, our approach enables the efficient generation of poisoned samples.
+		To address this, Concept Drift Adaptation methods based on Active Learning (CDA-AL) have been proposed to enhance model performance by querying informative samples.
+		However, limited research has been devoted to analyzing the robustness of CDA-AL.
+		Our core insight centers on the susceptibility of CDA-AL's uncertainty-driven sample selection to adversarial manipulation. 
+		The attacker crafts poisoned samples with high uncertainty to suppress the uncertainty ranking of the attack targets. 
+		This manipulation misleads CDA-AL to misallocate its limited labeling budget to these less-informative poisoned samples, thus impeding the model's learning progress on the attack targets.
 		
 		PACDA's effectiveness is evaluated by using 7 experimental baselines, built by combining 7 models across 4 datasets.
-		\textbf{PACDA achieves an average attack success rate of over 90\% on three concept drift datasets with shorter time spans.}  
+		PACDA achieves an average attack success rate of over 90\% on three concept drift datasets with shorter time spans.
 		Its effectiveness is further validated on a real-world concept drift dataset, APIGraph, which spans seven years and includes 300,000 samples.  
 		On this dataset, PACDA attains an 88\% attack success rate while maintaining model stability, with F1-score fluctuations remaining within 0.2.  
-		In addition, we conduct long-term persistence evaluations and tests under constrained attacker capabilities, both of which yield attack success rates exceeding 80\%.
-		Our analysis of four existing countermeasuers show they fail to effectively counter PACDA, highlighting the need for robust solutions.
-		As a step forward, we propose an adaptive sample filtering method based on intra-cluster distance, which effectively mitigates PACDA attacks and enhances the performance of CDA-AL.
+%		In addition, we conduct long-term persistence evaluations and tests under constrained attacker capabilities, both of which yield attack success rates exceeding 80\%.
+%		Our analysis of four existing countermeasuers show they fail to effectively counter PACDA, highlighting the need for robust solutions.
+%		As a step forward, we propose an adaptive sample filtering method based on intra-cluster distance, which effectively mitigates PACDA attacks and enhances the performance of CDA-AL.
 		
 		
 	\end{abstract}
