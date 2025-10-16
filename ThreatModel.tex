@@ -1,12 +1,13 @@
 \section{Threat Model}
 \label{Sec: Threat Model}
-\textbf{Attacker Objective}: The objective of \pandora is to ensure persistent misclassification of the attack targets by the victim model throughout the CDA-AL process, as shown in Equation~\ref{PANDORA-Formulation}.
+\textbf{Attacker Objective}: \pandora aims to maximize the number of drift cycles in which the victim model misclassifies $x_{tar}$, as shown in Equation~\ref{PANDORA-Formulation}.
 \begin{equation}
 	\begin{aligned}
 			\max_{ \{ D_{poi}^{n} \}_{n=1}^{T} } \sum_{n=1}^{T} \mathbb{I}[ f_{\bm{\theta}_{n}}(x_{tar}) \neq y_{tar} ]
 	\end{aligned}
 	\label{PANDORA-Formulation}
 \end{equation}
+
 Let $x_{tar}$ denote the target sample with ground-truth label $y_{tar}$, and let $T$ represent the total number of drift periods.
 We use $\mathbb{I}[\cdot]$ as an indicator function that equals $1$ if the condition holds and $0$ otherwise.
 At each cycle $n$, the attacker injects poisoning data $D_{poi}^{n}$ into the training process, resulting in an updated victim model $f_{\theta_{n}}$ trained with $D_{poi}^{n}$.
@@ -17,10 +18,11 @@ Consistent with previous research on active learning attacks~\cite{2021-Usenix-a
 Moreover, the attacker can access the victim model’s prediction uncertainty.
 This is based on the observation that existing machine learning services~\cite{2025-Baidu-Image-Recognition} provide uncertainty information to help users better interpret and utilize the prediction results.
 
-\textbf{Attacker Capability}:Attackers can only submit samples to the victim model for querying to obtain outputs such as sample uncertainty scores~\cite{2025-Baidu-Image-Recognition} and predicted labels~\cite{Virustotaluploadinterface}.
+\textbf{Attacker Capability}:Attackers can submit samples to the victim model for querying to obtain outputs such as sample uncertainty scores~\cite{2025-Baidu-Image-Recognition} and predicted labels~\cite{Virustotaluploadinterface}.
 Additionally, attackers are presumed to have access to public data and the resources required to train surrogate models~\cite{2023-AAAI-surrogate-model-for-adversarial-attack}.
 In addition, it is important to note that although CDA-AL systems involve human analysts, their primary role is to provide reliable labels for concept drift samples~\cite{2023-Usenix-chenyizhen}.
 As long as \pandora does not rely on malicious label manipulation, the attack remains inconspicuous to human analysts.
 In PANDORA, all poisoned samples follow the threat model of clean-label poisoning attacks, where the labels of poisoned samples are never maliciously altered.
-Compared with existing clean-label poisoning~\cite{2018-NIPS-Poison-frogs} threat models that assume free insertion of poisoned samples into the training dataset and require access to the victim model’s parameters, PANDORA imposes stricter constraints: poisoned samples must exhibit high uncertainty, and no parameter access is needed.
-Therefore, PANDORA operates under a more stringent threat model than prior clean-label poisoning attacks.
+For instance, injecting selective benign-appearing API calls into the malware while preserving its core malicious payload, thereby ensuring ground-truth label stability under clean-label constraints.
+%Compared with existing clean-label poisoning~\cite{2018-NIPS-Poison-frogs} threat models that assume free insertion of poisoned samples into the training dataset and require access to the victim model’s parameters, PANDORA imposes stricter constraints: poisoned samples must exhibit high uncertainty, and no parameter access is needed.
+%Therefore, PANDORA operates under a more stringent threat model than prior clean-label poisoning attacks.

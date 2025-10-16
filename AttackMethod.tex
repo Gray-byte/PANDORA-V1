@@ -24,16 +24,12 @@
 \section{\pandora}
 \label{Sec: Attack Method}
 
-%\subsection{Overview of \pandora}
 We present the \pandora framework, illustrated in Figure~\ref{fig:Attack Process}.
 The process begins by estimating the required poisoning ratio of the labeling budget based on the specified attack targets.
 By injecting poisoned samples into the testing data stream, the attacker determines which knowledge the victim model can or cannot acquire.
 Subsequently, we search the testing data stream to identify potential poisoning seeds.
 Based on the identified poisoning seeds, \pandora generates poisoned samples through adversarial perturbations in the problem space, further enhancing the attack effectiveness by misleading the direction of concept drift.
 Ultimately, \pandora exhausts the victim model’s labeling budget, preventing effective learning of the attack target.
-
-%\subsection{Detailed Design of \pandora}
-%\label{Sec: Detailed Design of PACDA}
 
 We demonstrate the design of the \pandora method by using a specific concept drift cycle $n$ as an example, executing the same attack procedure in every concept drift cycle.
 In concept drift cycle $n$, the complete testing dataset collected by the victim model is denoted as $\bm{D}_{te}^{n} \in \mathbb{R}^{N \times d}$ (with N samples in d dimensions).
@@ -42,18 +38,6 @@ The victim model is denoted as $f_{\bm{\theta}_{n-1}}$, and its labeling budget 
 Notably, at the start of concept drift cycle $n$, the victim model is derived from the model updated at the end of concept drift cycle $n-1$. Therefore, the model parameters at this stage are denoted as $\bm{\theta}_{n-1}$.
 The victim model performs uncertainty quantification on the collected testing data and ranks the samples accordingly.
 The top $\beta$ samples with the highest uncertainty ranking are selected for manual analysis to obtain the concept drift data $\bm{D}_{dr}^{n} \in \mathbb{R}^{\beta \times d}$ (with $\beta$ samples in d dimensions).
-
-%\subsection{Attack Value Assessment}
-%\label{Sec: Attack Value Assessment}
-%The \pandora is essentially a resource-exhaustion attack that targets the labeling budget of the victim model.
-%However, the attacker also faces similar risks of resource exhaustion.
-%For example, resources may be wasted if the attacker chooses a attack target already in the training data.
-%A failed attack prevents the attacker from obtaining any reward and incurs substantial attack costs.
-%Consequently, the attacker must carefully assess whether the attack targets are worth attacking.
-%This decision is based on the accuracy of the victim model’s prediction of the attack targets.
-%Samples not present in the training data are more likely to be misclassified, making this a strong indicator of attack value.
-%The attacker can leverage the victim model to make this determination.
-%If the predicted label $\overline{y}_{i}$ of $\bm{\mathrm{x}}_{tar}$ from the victim model $f_{\bm{\theta}_{n-1}}$ differs from the ground-truth label $y_{i}$, the attack target $\bm{\mathrm{x}}_{tar}$ is likely to be of high attack value.
 
 \subsection{Surrogate Model Training}
 Since the attacker cannot access the internal information of the victim model to perform uncertainty estimation under the black-box threat model, \pandora trains a surrogate model to provide guidance for the generation of poisoned samples.
@@ -146,29 +130,6 @@ The constraint condition applied to each sample vector $\bm{\mathrm{x}}_{j}$ is 
 Samples that do not satisfy this condition are removed from the poisoning seed data $\bm{D}_{seed}^{n}$.
 Finally, the refined poisoning seed data is sorted in descending order of uncertainty, with the sample at index 0 having the highest uncertainty.
 
-%\subsection{Poisoning Seed Uncertainty Attribution}
-%After obtaining the poisoned seed samples $\bm{D}_{seed}^{n}$, we aim to interpret their uncertainty to facilitate the subsequent poisoned sample generation by expanding the space of manipulable uncertainty rankings.
-%Given the need to accommodate various models for CDA-AL, our uncertainty attribution method should be model-agnostic.
-%Moreover, to effectively construct poisoned samples with high uncertainty, the explanation should operate at the feature level.
-%Although standard conformal prediction methods can provide interpretable uncertainty estimates through credibility scores, they are unable to offer feature-level explanations of uncertainty.
-%Therefore, we adopt a shapley additive explanations (SHAP) based approach for feature level attribution of sample uncertainty.
-%The fundamental concepts of SHAP are provided in Appendix~\ref{Sec: Shapley Additive Explanations}.
-%We employ a standardized permutation-based SHAP method to interpret sample uncertainty, ultimately getting an uncertainty attribution matrix for the samples.
-%%We utilize a standardized permutation-based SHAP method to interpret sample uncertainty, approximating shapley values by iterating through permutations of input features.
-%%This model-agnostic explainer ensures local accuracy (additivity) by iterating completely through an entire permutation of the features in both forward and reverse directions (antithetic sampling).
-%Since the objective of \pandora is to prevent the victim model from learning the attack target $\bm{\mathrm{x}}_{tar}$, the generated poisoned samples must suppress the model’s ability to adapt to concept drift.
-%To achieve this, samples outside the labeling budget are selected as targets for uncertainty attribution.
-%Their lower importance relative to in-budget samples helps avoid inadvertently strengthening the model’s adaptation capabilities.
-%The attacker applies uncertainty feature attribution on the testing data outside the labeling budget, denoted as $\bm{D}_{shap}^{n}$ ($\bm{D}_{shap}^{n} = \bm{D}_{te}^{n} \setminus \bm{D}_{dr}^{n}$).
-%These samples are then sorted in descending order based on their uncertainty scores.
-%\begin{equation}
-%	\begin{aligned}
-%		 \bm{V}_{shap} = SHAP (\bm{D}_{tr}^{n-1},UncerSort(\bm{D}_{shap}^{n})) \\
-%	\end{aligned}
-%\end{equation}
-%$\bm{V}_{shap}$ represents the matrix of uncertainty feature attributions for data $\bm{D}_{shap}^{n}$.
-%$\bm{\mathrm{v}}_{i}$ denotes the feature attribution vector of a specific sample, while $v_{i,j}$ indicates the impact of a particular feature on the uncertainty of the given sample.
-
 \subsection{Poisoned Sample Generation}
 \label{Sec: Poisoned Sample Generation}
 The poisoned seed samples $\bm{D}_{seed}^{n}$ is incorporated into the victim model’s training dataset due to its high uncertainty.
@@ -179,22 +140,6 @@ The poisoned sample generation process consists of two parts.
 The first part generates poisoned samples based on high-uncertainty poisoning seeds to exhaust the labeling budget, thereby preventing the victim model from learning samples directly related to the attack targets.
 The second part constructs poisoned samples using shapley additive explanations to misguide the direction of concept drift, with the aim of eliminating samples that are implicitly related to the attack targets within the labeling budget.
 The combination of the two parts prevents the victim model from effectively learning the attack targets while also hindering its understanding of the correct direction of concept drift.
-
-%\subsubsection{Selection of Poisoned Sample Generation Strategy}
-%\label{Sec: Selection of Poisoned Sample Generation Strategy}
-%We propose two poisoned sample generation strategies: Strategy I, which is based on problem-space perturbation, and Strategy II, which leverages Shapley additive explanations.
-%Both strategies aim to generate poisoned samples, thereby leading to misclassification of the attack target $\bm{\mathrm{x}}_{tar}$.
-%However, the two strategies are suitable for different attack scenarios.
-%
-%However, the two strategies are suitable for different types of attack targets.
-%Strategy I prevents the victim model from learning specific knowledge about the attack target $\bm{\mathrm{x}}_{tar}$ by constructing poisoned samples without introducing incorrect concept drift information.
-%It focuses solely on preventing the victim model from learning the attack target $\bm{\mathrm{x}}_{tar}$ while minimizing its impact on the model’s ability to adapt to concept drift.
-%In contrast, Strategy II prevents the victim model from acquiring knowledge about the attack target $\bm{\mathrm{x}}_{tar}$ and introduces misleading information about concept drift into the training process.
-%Although this reduces the model’s ability to adapt to true concept drift in the testing data, it does not cause a significant drop in overall performance, as indicated by the F1 score in Table~\ref{tab:Attack Effectiveness}.
-%
-%In terms of strategy selection, Strategy I is better suited for attack targets that are inherently challenging to learn, typically those exhibiting a high degree of concept drift.
-%Conversely, when the attack targets is relatively easy to learn due to weak concept drift, strategy II is employed to enhance the effectiveness of the attack.
-%Finally, we ensure that, regardless of the degree of concept drift exhibited by the attack targets, the victim model fails to learn the attack target due to its inability to efficiently allocate the limited labeling budget, ultimately leading to the misclassification of the attack targets.
 
 \subsubsection{Problem-Space Adversarial Perturbation}
 \label{Sec: Strategy I-Problem-Space Perturbation}
@@ -220,18 +165,10 @@ This strategy ensures that the newly generated poisoned samples exhibit high unc
 				\midrule
 				APIGraph & Rename method names to meaningless identifiers  \\ 
 				\specialrule{0.05em}{1pt}{1pt}
-%				APIGraph & Modify image and other resource files     \\ 
-%				\specialrule{0.05em}{1pt}{1pt}
-%				BODMAS & Modify the system API function names   \\
-%				\specialrule{0.05em}{1pt}{1pt}
 				BODMAS & Dynamically adjust the size of the DOS STUB space  \\
 				\specialrule{0.05em}{1pt}{1pt}
-%				MNIST & Add Gaussian noise to the image pixels  \\
-%				\specialrule{0.05em}{1pt}{1pt}
 				MNIST & Apply sharpening to enhance the edges of the image  \\
 				\specialrule{0.05em}{1pt}{1pt}
-%				SPAM & Remove non-essential words \\
-%				\specialrule{0.05em}{1pt}{1pt}
 				SPAM & Insert random symbols or additional spaces  \\
 				\bottomrule
 		\end{tabular}}
@@ -270,8 +207,6 @@ To achieve this, samples outside the labeling budget are selected as targets for
 Their lower importance relative to in-budget samples helps avoid inadvertently strengthening the model’s adaptation capabilities.
 the testing data outside the labeling budget, denoted as $\bm{D}_{shap}^{n}$ ($\bm{D}_{shap}^{n} = \bm{D}_{te}^{n} \setminus \bm{D}_{dr}^{n}$).
 Then We compute the uncertainty attribution matrix of $\bm{D}_{shap}^{n}$, as shown in Equation~\ref{shap-uncer}.
-%We utilize a standardized permutation-based SHAP method to interpret sample uncertainty, approximating shapley values by iterating through permutations of input features.
-%This model-agnostic explainer ensures local accuracy (additivity) by iterating completely through an entire permutation of the features in both forward and reverse directions (antithetic sampling).
 \begin{equation}
 	\begin{aligned}
 		\bm{V}_{shap} = SHAP (\bm{D}_{tr}^{n-1},UncerSort(\bm{D}_{shap}^{n})) \\
@@ -279,14 +214,6 @@ Then We compute the uncertainty attribution matrix of $\bm{D}_{shap}^{n}$, as sh
 	\label{shap-uncer}
 \end{equation}
 $\bm{V}_{shap}$ represents the matrix of uncertainty feature attributions for data $\bm{D}_{shap}^{n}$.
-%$\bm{\mathrm{v}}_{i}$ denotes the feature attribution vector of a specific sample, while $v_{i,j}$ indicates the impact of a particular feature on the uncertainty of the given sample.
-%It is worth noting that the uncertainty attribution matrix $\bm{V}_{shap}$ allows samples originally outside the labeling budget to be shifted into the budget through feature-space perturbation.
-%Consequently, we eliminate the dependence on high-uncertainty seed samples $\bm{D}_{seed}^{n}$.
-%It enhances \pandora’s robustness by preventing the victim model from acquiring accurate knowledge of actual concept drift samples, instead introducing misleading concept drift information into the victim model.
-%So, the attacker can operate in two different attack modes based on the cost the attack service purchaser is willing to pay.
-%The attacker can choose to use the problem space perturbation strategy alone. 
-%This approach is low-cost, but the attack success rate on some attack targets cannot be guaranteed.
-%If the attacker has sufficient computational resources and aims for a higher attack success rate, they can generate poisoned samples by applying feature space perturbations.
 We denote each row of the uncertainty attribution matrix as a vector $\bm{\mathrm{v}}_{i}$, where $\bm{\mathrm{v}}_{i} =\bm{V}_{\text{shap}}[i,:]$,$\forall i \in \{0, \dots, N-1 \}$.
 Based on the uncertainty feature attribution vector $\bm{\mathrm{v}}_{i}$ for each sample, the attacker identifies the set of feature indices $\bm{I}_{shap}$ that have the greatest impact on increasing uncertainty.
 The computation of the feature index vector $\bm{I}_{shap}$ is shown in Equation~\ref{mask}.
@@ -299,18 +226,8 @@ The computation of the feature index vector $\bm{I}_{shap}$ is shown in Equation
 $d$ denotes the dimension of the feature vector for each sample.
 The sorting function ranks feature indices based on their influence on sample uncertainty, such that features contributing more to increased uncertainty are assigned smaller index values.  
 Therefore, the attacker can focus on modifying features with lower index values to effectively amplify uncertainty.
-%As shown in Figure 4, the Force plot of the uncertainty feature attribution vector $\bm{\mathrm{v}}_{i}$ is ordered by the $\bm{I}_{shap}$ index.
-%Red indicates features that increase the sample's uncertainty, while blue represents features that decrease it.
-%The features closer to the center significantly impact uncertainty, corresponding to the lower-indexed parts of $\bm{I}_{shap}$.
-%Modifying the features corresponding to the indices of the blue region will increase the sample uncertainty, as shown in Figure~\ref{fig:SHAP}.
 We selected the top 2\% of features based on their indices for modification.
 Since the uncertainty-based SHAP attribution provides a linear approximation of the model's predictive uncertainty, modifying the key features with the highest attribution values increases the sample's overall uncertainty.
-%\begin{figure}[h!]
-%	\centering
-%	\includegraphics[width=\linewidth,keepaspectratio]{Graph/Evaluation/shap.pdf}
-%	\caption{SHAP-based Sample Uncertainty Attribution}
-%	\label{fig:SHAP}
-%\end{figure}
 
 A sample from the APIGraph dataset is taken as an example, and its features are represented as 0-1 vectors.
 This feature modification corresponds to adjusting the API call patterns in the actual application.
@@ -319,8 +236,3 @@ Moreover, the modifications only reduce software API calls without introducing a
 For data in other domains, we replace the values of the important features with the corresponding values from samples with high uncertainty.
 The perturbed samples generated in this manner are considered as a new set of poisoned attack samples $\bm{D}_{shap}^{n}$.
 The attacker can further amplify the set by applying problem space perturbation to the poisoned samples $\bm{D}_{shap}^{n}$ to enhance their impact on the victim model.
-
-%Moreover, the number of poisoned samples only needs to be sufficient to consume the victim model's labeling budget. 
-%Consequently, they constitute only a small fraction of the training data.
-%For example, in the real-world APIGraph~\cite{2020-CCS-APIGraph} data, poisoned samples generated in a single attack account for only 1\% of the training data.
-%In addition to the stealth provided by the low poisoning ratio, all poisoned samples retain correct labels without any label flipping.
