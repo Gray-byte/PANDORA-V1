@@ -123,6 +123,7 @@ These selected samples are referred to as poisoning seed samples.
 The poisoning seed data, denoted as $\bm{D}_{seed}^{n} \in \mathbb{R}^{K \times d}$ (with $K$ samples in d dimensions), consists of samples that satisfy the uncertainty criterion defined in Equation~\ref{equncer}.
 We denote each row of the testing data as a sample vector $\bm{\mathrm{x}}_{i}$, where $\bm{\mathrm{x}}_{i} = \bm{D}_{te,\,i*}^{n}$,$\forall i \in \{0, \dots, N-1\}$.
 The key issue is ensuring that the poisoned samples have high uncertainty, thereby increasing the likelihood that they consume the victim model's labeling budget.
+We use $uncer()$ to denote uncertainty measures in the following discussion.
 So the uncertainty of these poisoned seed samples must exceed the attack target’s uncertainty, as shown in Equation~\ref{equncer}.
 \begin{equation}
 	\begin{aligned}
