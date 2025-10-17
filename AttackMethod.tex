@@ -1,19 +1,3 @@
-%\section{Design Rationale}
-%\subsection{Design Challenges}
-%
-%\pandora faces three key challenges.
-%(1) The sample selection strategy deployed in CDA-AL restricts the arbitrary injection of poisoned samples into the training data.
-%Therefore, attackers must ensure that the victim model selects poisoned samples for labeling.
-%(2) The sample labeling process in active learning is based on manual analysis, meaning the labels of all poisoned samples in the training data must remain correct.
-%The attacker cannot degrade the victim model’s concept drift adaptation performance by tampering with the sample labels~\cite{2018-NIPS-Poison-frogs,2019-NIPS-Transferable-clean-label-poisoning-attacks-on-deep-neural-nets}.
-%(3) Existing targeted poisoning attacks are typically evaluated for effectiveness on models with fixed parameters. 
-%For example, backdoor attacks are often evaluated on pre-trained models~\cite{2024-TIFS-Backdoor-Contrastive-Learning,2021-Usenix-Poisoning-Attack-Explanation-guided-Backdoor,2023-SP-backdoor-attack}.
-%In contrast, \pandora must ensure its attack remains effective as the victim model continuously updates its parameters.
-%\pandora tackles the first two challenges.
-%The final challenge is addressed through continuous attacks on the concept drift adaptation process.
-%Additionally, we validate the persistence of the attack’s effectiveness on concept drift data spanning seven years, as discussed in Section~\ref{Sec: Single Attack Targets}.
-
-
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=\linewidth,keepaspectratio]{Graph/Attack_Method/PACDA_attack_process_2025_6_6_01_07.pdf}
@@ -25,31 +9,29 @@
 \label{Sec: Attack Method}
 
 We present the \pandora framework, illustrated in Figure~\ref{fig:Attack Process}.
-The process begins by estimating the required poisoning ratio of the labeling budget based on the specified attack targets.
-By injecting poisoned samples into the testing data stream, the attacker determines which knowledge the victim model can or cannot acquire.
-Subsequently, we search the testing data stream to identify potential poisoning seeds.
-Based on the identified poisoning seeds, \pandora generates poisoned samples through adversarial perturbations in the problem space, further enhancing the attack effectiveness by misleading the direction of concept drift.
-Ultimately, \pandora exhausts the victim model’s labeling budget, preventing effective learning of the attack target.
+The process starts with computing the necessary poisoning ratio for the labeling budget, which is determined according to the predefined attack targets.
+Then we search the testing data to identify potential poisoning seeds with high uncertainty to influence the labeling budget.
+Based on these effective yet limited poisoning seeds, \pandora generates additional poisoned samples via adversarial perturbations, thereby exhausting the victim model’s labeling budget and ultimately controlling what knowledge the victim model can or cannot learn.
 
 We demonstrate the design of the \pandora method by using a specific concept drift cycle $n$ as an example, executing the same attack procedure in every concept drift cycle.
-In concept drift cycle $n$, the complete testing dataset collected by the victim model is denoted as $\bm{D}_{te}^{n} \in \mathbb{R}^{N \times d}$ (with N samples in d dimensions).
+In concept drift cycle $n$, the complete testing data collected by the victim model is denoted as $\bm{D}_{te}^{n} \in \mathbb{R}^{N \times d}$ (with N samples in d dimensions).
 The attack target sample $\bm{\mathrm{x}}_{tar}$ is a concept drift sample of the testing data $\bm{D}_{te}^{n}$. 
 The victim model is denoted as $f_{\bm{\theta}_{n-1}}$, and its labeling budget is represented by $\beta$.
-Notably, at the start of concept drift cycle $n$, the victim model is derived from the model updated at the end of concept drift cycle $n-1$. Therefore, the model parameters at this stage are denoted as $\bm{\theta}_{n-1}$.
+Notably, at the start of concept drift cycle $n$, the victim model is derived from the model updated at the end of concept drift cycle $n-1$.
+Therefore, the model parameters at this stage are denoted as $\bm{\theta}_{n-1}$.
 The victim model performs uncertainty quantification on the collected testing data and ranks the samples accordingly.
 The top $\beta$ samples with the highest uncertainty ranking are selected for manual analysis to obtain the concept drift data $\bm{D}_{dr}^{n} \in \mathbb{R}^{\beta \times d}$ (with $\beta$ samples in d dimensions).
 
 \subsection{Surrogate Model Training}
-Since the attacker cannot access the internal information of the victim model to perform uncertainty estimation under the black-box threat model, \pandora trains a surrogate model to provide guidance for the generation of poisoned samples.
-First, the attacker cannot query the victim model for sample uncertainty scores. 
-In this scenario, the adversary is restricted to accessing only the predicted labels or the output probability distribution generated by the victim model.
-Other information, such as sample uncertainty, must be obtained through the surrogate model.
-So we propose a surrogate model construction method based on knowledge distillation, where the surrogate model’s parameters $\bm{\theta}_{n-1}^{*}$ approximate those of the victim model $\bm{\theta}_{n-1}$.
+Under our threat model (as described in Sec.~\ref{Sec: Threat Model}), the attacker may, in some cases, be unable to access the internal states of the victim model to perform uncertainty quantification.
+Specifically, the attacker is restricted to accessing only the predicted labels and the output probability distribution generated by the victim model.
+To overcome this limitation, we propose a surrogate model construction method based on knowledge distillation, which will mimics the victim model's uncertainty quantification behavior.
 
-The purpose of the surrogate model is to identify the optimal parameters $\bm{\theta}_{n-1}^{*}$ such that the prediction error between the surrogate model and the victim model is minimized for all inputs $\bm{\mathrm{x}}_{i} \in \bm{D}_{te}^{n-1}$, as shown in Equation~\ref{Surrogate Model Training}.
+Taking concept drift cycle $n$ as an example, the goal of the surrogate model is to identify the optimal parameters $\bm{\theta}_{n-1}^{*}$ such that the prediction error between the surrogate model and the victim model is minimized for all inputs $\bm{\mathrm{x}}_{i} \in \bm{D}_{te}^{n-1}$, as shown in Equation~\ref{Surrogate Model Training}.
 \begin{equation}
 	\begin{aligned}
-		\bm{\theta}_{n-1}^{*} = \arg\min_{\bm{\theta}_{n-2}^{*}} \mathcal{L_{\text{dist}}} \left( \bm{\theta}_{n-2}^{*}, \bm{D}_{te}^{n-1} , \bm{\theta}_{n-1} \right)
+		\bm{\theta}_{n-1}^{*} = \arg\min_{\bm{\theta}} \mathcal{L_{\text{dist}}} \left( \bm{\theta}, \bm{D}_{te}^{n-1} , \bm{\theta}_{n-1} \right)
+		\quad \text{initialized from } \bm{\theta} = \bm{\theta}^{*}_{n-2}
 	\end{aligned}
 	\label{Surrogate Model Training}
 \end{equation}
@@ -59,13 +41,13 @@ Here, $\mathcal{L_{\text{dist}}}$ denotes the distillation loss function, which 
 	\begin{aligned}
 		\mathcal{L_{\text{dist}}} 
 		&= \frac{1}{|\bm{D}_{te}^{n-1}|} \sum_{x_i \in \bm{D}_{te}^{n-1}} \frac{1}{2} \Big[ 
-		\mathrm{KLD}\!\left(h(x_i; \bm{\theta}_{n-1})\,\|\,h(x_i; \bm{\theta}_{n-2}^{*} )\right) \\
-		&\quad + \mathrm{KLD}\!\left(h(x_i; \bm{\theta}_{n-2}^{*})\,\|\,h(x_i; \bm{\theta}_{n-1})\right) \Big]
+		\mathrm{KLD}\!\left(h(x_i; \bm{\theta}_{n-1})\,\|\,h(x_i; \bm{\theta} )\right) \\
+		&\quad + \mathrm{KLD}\!\left(h(x_i; \bm{\theta})\,\|\,h(x_i; \bm{\theta}_{n-1})\right) \Big]
 	\end{aligned}
 	\label{KL-loss}
 \end{equation}
-Let $\bm{D}_{te}^{n-1}$ denote the set of samples submitted by the attacker.
-For a given input $x_i$, $h(x_i; \bm{\theta}_{n-1})$ represents the predictive distribution of the victim model, while $h(x_i; \bm{\theta}_{n-2}^{*})$ denotes the predictive distribution of the surrogate model.
+Let $\bm{D}_{te}^{n-1}$ denote the set of samples collected by the attacker.
+For a given input $x_i$, $h(x_i; \bm{\theta}_{n-1})$ represents the predictive distribution of the victim model, while $h(x_i; \bm{\theta})$ denotes the predictive distribution of the surrogate model.
 Note that the loss in Equation~\ref{KL-loss} consists of two KLD terms. 
 The first term measures the information loss when the predictive distribution of the victim model is approximated by the surrogate model. 
 The second term quantifies the reverse discrepancy, capturing how well the surrogate model’s predictions can be explained by the victim model. 
@@ -76,12 +58,11 @@ This is because the victim model has already completed learning from the previou
 This model is used to quantify the uncertainty of samples in the current concept drift cycle $n$.
 Therefore, to ensure that the surrogate model $\bm{\theta}_{n-1}^{*}$ approximates the victim model $\bm{\theta}_{n-1}$, the attacker queries the testing data $\bm{D}_{te}^{n-1}$ and uses the query results to train the surrogate model.
 
-
 \subsection{Poisoning Ratio of Labeling Budget}
 \label{Sec: Surrogate Model Training}
 Once the attack target $\bm{\mathrm{x}}_{tar}$ is determined, the \pandora begins by estimating the poisoning ratio of the labeling budget that needs to be exhausted from the victim model.
 The attacker makes decisions based on the uncertainty ranking of the attack target $\bm{\mathrm{x}}_{tar}$.
-If the uncertainty ranking $r_{tar}$ of the attack target $\bm{\mathrm{x}}_{tar}$ is higher than the labeling budget boundary $(r_{tar} < r_{\beta})$, the attack target $\bm{\mathrm{x}}_{tar}$ will be selected as a concept drift sample.
+If the uncertainty ranking $r_{tar}$ of the attack target $\bm{\mathrm{x}}_{tar}$ is higher than the labeling budget boundary $(r_{tar} < r_{\beta})$, the attack target $\bm{\mathrm{x}}_{tar}$ will be selected as a concept drift sample to retrain the victim model.
 It is important to note that a higher uncertainty ranking corresponds to a smaller value of $r_{tar}$.
 Then, the attack target $\bm{\mathrm{x}}_{tar}$ will be learned during the retraining process of the victim model.
 The gap between the uncertainty ranking of the attack target $\bm{\mathrm{x}}_{tar}$ and the labeling budget boundary represents the primary objective of the attacker’s labeling budget consumption, denoted as $C_{n}$.
@@ -103,8 +84,6 @@ The specific value of this factor is determined by the attacker's computational 
 
 \subsection{Constraint Search for Poisoning Seed}
 The attacker then searches for samples that can be used to exhaust the victim model’s labeling budget $C_{n}$.
-These selected samples are referred to as poisoning seed samples.
-The poisoning seed data, denoted as $\bm{D}_{seed}^{n} \in \mathbb{R}^{K \times d}$ (with $K$ samples in d dimensions), consists of samples that satisfy the uncertainty criterion defined in Equation~\ref{equncer}.
 We denote each row of the testing data as a sample vector $\bm{\mathrm{x}}_{i}$, where $\bm{\mathrm{x}}_{i} = \bm{D}_{te,\,i*}^{n}$,$\forall i \in \{0, \dots, N-1\}$.
 The key issue is ensuring that the poisoned samples have high uncertainty, thereby increasing the likelihood that they consume the victim model's labeling budget.
 We use $uncer()$ to denote uncertainty measures in the following discussion.
@@ -115,10 +94,12 @@ So the uncertainty of these poisoned seed samples must exceed the attack target�
 	\end{aligned}
 	\label{equncer}
 \end{equation}
+The samples selected according to the above criteria are referred to as poisoning seed samples, denoted as $\bm{D}_{seed}^{n} \in \mathbb{R}^{K \times d}$, where $K$ represents the number of samples and $d$ denotes the feature dimension.
+
 Furthermore, it is crucial to ensure that the poisoned samples exhaust the victim model’s labeling budget without enhancing its concept drift adaptation capability.
 For instance, incorporating novel malware samples into the poisoning seed data may improve the victim model’s ability to detect malicious behavior, thereby undermining the attacker’s objective of causing misclassification of the attack target $\bm{\mathrm{x}}_{tar}$.
 Therefore, the attacker must exclude malware samples from the poisoning seed data to avoid reducing the attack effectiveness on the target $\bm{\mathrm{x}}_{tar}$.
-In addition, similarity-based filtering can be employed to prevent the inclusion of samples similar to the attack target $\bm{\mathrm{x}}_{tar}$ in the poisoned samples.
+Specifically, similarity-based filtering can be employed to prevent the inclusion of samples similar to the attack target $\bm{\mathrm{x}}_{tar}$ in the poisoned samples.
 \begin{equation}
 	\begin{aligned}
 		(y_{j} \neq y_{tar}) \land [sim(\bm{\mathrm{x}}_{j},\bm{\mathrm{x}}_{tar})< \tau]
@@ -127,12 +108,13 @@ In addition, similarity-based filtering can be employed to prevent the inclusion
 \end{equation}
 Each row of the poisoning seed data $\bm{D}_{seed}^{n}$ is denoted as a sample vector $\bm{\mathrm{x}}_{j}$, where $\bm{\mathrm{x}}_{j} = \bm{D}_{\text{seed}}^{n}[j,:]$,$\forall j \in \{0, \dots, K-1\}$.
 The constraint condition applied to each sample vector $\bm{\mathrm{x}}_{j}$ is defined in Equation~\ref{E6}.
+Here, $sim$ is computed based on the cosine similarity in the feature space of the samples.
 Samples that do not satisfy this condition are removed from the poisoning seed data $\bm{D}_{seed}^{n}$.
 Finally, the refined poisoning seed data is sorted in descending order of uncertainty, with the sample at index 0 having the highest uncertainty.
 
 \subsection{Poisoned Sample Generation}
 \label{Sec: Poisoned Sample Generation}
-The poisoned seed samples $\bm{D}_{seed}^{n}$ is incorporated into the victim model’s training dataset due to its high uncertainty.
+The poisoned seed samples $\bm{D}_{seed}^{n}$ are highly likely to be incorporated into the victim model’s training dataset due to their high uncertainty.
 However, the seed samples obtained via the constrained search strategy may not fully satisfy the required labeling budget consumption $C_{n}$.
 Consequently, attack targets will still be selected and labeled manually, leading to a failure of \pandora.
 To ensure the attack effectiveness, the attacker must generate an additional batch of poisoned samples such that the total number of poisoned samples is greater than or equal to the labeling budget consumption $C_{n}$.
@@ -144,15 +126,16 @@ The combination of the two parts prevents the victim model from effectively lear
 \subsubsection{Problem-Space Adversarial Perturbation}
 \label{Sec: Strategy I-Problem-Space Perturbation}
 Adversarial perturbation is particularly effective for rapidly and cost-efficiently adjusting the uncertainty rankings of the testing data.
-The problem space perturbation strategy refers to modifying the samples in the poisoning attack seed data $\bm{D}_{seed}^{n}$ to generate new poisoned samples without altering the features of these samples.
 We denote each row of the attack seed data $\bm{D}_{seed}^{n}$ as a sample vector $\bm{\mathrm{x}}_{k}$, where $\bm{\mathrm{x}}_{k} = \bm{D}_{\text{seed}}^{n}[k,:]$,$\forall k \in \{0, \dots, M-1 \}$.
-Due to the need for attack stealth, the samples generated by problem space perturbation must minimize the impact on other concept drift samples. 
-Therefore, we select the $\epsilon$ least uncertain samples from the poisoned seed sample set for problem space perturbation. 
-The smaller $\epsilon$ is, the lesser the impact on existing concept drift samples.
-In this paper's subsequent attack effectiveness evaluation, we set $\epsilon$ to 5, which accounts for 0.025 of the labeling budget.
-A perturbation in the problem space is applied to these samples $\bm{\mathrm{x}}_{k}$, $k \in \{0, \dots,  \epsilon-1 \}$ , resulting in a new dataset denoted as $\bm{D}_{\alpha}^{n}$.
-$\alpha$ denotes the problem-space perturbation operations.
-This strategy ensures that the newly generated poisoned samples exhibit high uncertainty, thereby maintaining their potential to exhaust the victim model’s labeling budget and increase the uncertainty ranking of the attack target $r_{tar}$ beyond the labeling budget boundary (i.e., $r_{tar} > r_{\beta}$).
+The problem space perturbation strategy refers to modifying the samples in the poisoning attack seed data $\bm{D}_{seed}^{n}$ to generate new poisoned samples without altering the features of these samples.
+The reason is that machine learning models, during the feature extraction process, often ensure that non-critical perturbations $\alpha$ in the data do not affect the features in order to construct robust representations.
+Therefore, when the attacker adjusts the non-essential information of a sample, the sample is altered, but its features remain unchanged.
+Since existing uncertainty quantification methods are based on sample features, altering the problem space does not reduce the sample's uncertainty, ensuring that the labeling budget can be exhausted.
+For example, in software applications, when key information such as permissions and API calls is extracted as features, elements like coding style and redundant code have no direct relationship with these critical features.
+Examples of problem space perturbations in different domains can be found in Table~\ref{tab: List of Problem Space Perturbation Operations}.
+All perturbation operations preserve the original labels of the poisoned seed samples.
+The perturbation operation in the problem space is infinite, allowing for generating a sufficient number of poisoned samples.
+Thus, by leveraging high-uncertainty seed samples $\bm{D}_{seed}^{n}$ and the problem space perturbation strategy, the attacker can generate poisoned samples $\bm{D}_{\alpha}^{n}$ to meet the victim model's labeling budget consumption $C_{n}$.
 \begin{table}[h!]
 	\caption{Problem-Space Perturbation Operations}
 	\label{tab: List of Problem Space Perturbation Operations}
@@ -175,14 +158,13 @@ This strategy ensures that the newly generated poisoned samples exhibit high unc
 	\end{center}
 \end{table}
 
-The reason is that machine learning models, during the feature extraction process, often ensure that non-critical perturbations $\alpha$ in the data do not affect the features in order to construct robust representations.
-Therefore, when the attacker adjusts the non-essential information of a sample, the sample is altered, but its features remain unchanged.
-Since existing uncertainty quantification methods are based on sample features, altering the problem space does not reduce the sample's uncertainty, ensuring that the labeling budget can be exhausted.
-For example, in software applications, when key information such as permissions and API calls is extracted as features, elements like coding style and redundant code have no direct relationship with these critical features.
-Examples of problem space perturbations in different domains can be found in Table~\ref{tab: List of Problem Space Perturbation Operations}.
-All perturbation operations preserve the original labels of the poisoned seed samples.
-The perturbation operation in the problem space is infinite, allowing for generating a sufficient number of poisoned samples.
-Thus, by leveraging high-uncertainty seed samples $\bm{D}_{seed}^{n}$ and the problem space perturbation strategy, the attacker can generate poisoned samples $\bm{D}_{\alpha}^{n}$ to meet the victim model's labeling budget consumption $C_{n}$.
+Due to the need for attack stealth, the samples generated by problem space perturbation must minimize the impact on the overall performance of the victim model. 
+Therefore, we select the $\epsilon$ least uncertain samples from the poisoned seed sample set for problem space perturbation. 
+The smaller $\epsilon$ is, the lesser the impact on existing concept drift samples.
+In this paper's subsequent attack effectiveness evaluation, we set $\epsilon$ to 5, which accounts for 0.025 of the labeling budget.
+A perturbation in the problem space is applied to these samples $\bm{\mathrm{x}}_{k}$, $k \in \{0, \dots,  \epsilon-1 \}$ , resulting in a new dataset denoted as $\bm{D}_{\alpha}^{n}$.
+$\alpha$ denotes the problem-space perturbation operations.
+This strategy ensures that the newly generated poisoned samples exhibit high uncertainty, thereby maintaining their potential to exhaust the victim model’s labeling budget and increase the uncertainty ranking of the attack target $r_{tar}$ beyond the labeling budget boundary (i.e., $r_{tar} > r_{\beta}$).
 
 \subsubsection{Concept Drift Direction Misguidance}
 \label{Sec: Strategy II: Feature-Space Perturbation}
@@ -201,6 +183,7 @@ Although standard conformal prediction methods can provide interpretable uncerta
 Therefore, we adopt a SHAP based approach for feature level attribution of sample uncertainty.
 The fundamental concepts of SHAP are provided in Appendix~\ref{Sec: Shapley Additive Explanations}.
 We employ a standardized permutation-based SHAP method to interpret sample uncertainty, ultimately getting an uncertainty attribution matrix for the samples.
+The SHAP computation requires the parameters of the surrogate model, denoted as $\bm{\theta}_{n-1}^{*}$, to be provided as input.
 
 In selecting the analysis targets for uncertainty attribution, it is important to note that since the objective of \pandora is to prevent the victim model from learning the attack target  $\bm{\mathrm{x}}_{tar}$, the generated poisoned samples must hinder the model’s ability to adapt to concept drift.
 To achieve this, samples outside the labeling budget are selected as targets for uncertainty attribution.
@@ -209,7 +192,7 @@ the testing data outside the labeling budget, denoted as $\bm{D}_{shap}^{n}$ ($\
 Then We compute the uncertainty attribution matrix of $\bm{D}_{shap}^{n}$, as shown in Equation~\ref{shap-uncer}.
 \begin{equation}
 	\begin{aligned}
-		\bm{V}_{shap} = SHAP (\bm{D}_{tr}^{n-1},UncerSort(\bm{D}_{shap}^{n})) \\
+		\bm{V}_{shap} = SHAP (\bm{D}_{tr}^{n-1},UncerSort(\bm{D}_{shap}^{n}),\bm{\theta}_{n-1}^{*}) \\
 	\end{aligned}
 	\label{shap-uncer}
 \end{equation}

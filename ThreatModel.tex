@@ -17,6 +17,7 @@ By continuously introducing such poisoned data across cycles, the attacker aims 
 Consistent with previous research on active learning attacks~\cite{2021-Usenix-active-learning-backdoor}, we assume the attacker typically has knowledge of the victim model's labeling budget settings.
 Moreover, the attacker can access the victim model’s prediction uncertainty.
 This is based on the observation that existing machine learning services~\cite{2025-Baidu-Image-Recognition} provide uncertainty information to help users better interpret and utilize the prediction results.
+In addition, we also consider the scenario where the attacker cannot access the sample uncertainty. To address this, a surrogate model is constructed in the framework design to approximate the victim model’s uncertainty estimation.
 
 \textbf{Attacker Capability}:Attackers can submit samples to the victim model for querying to obtain outputs such as sample uncertainty scores~\cite{2025-Baidu-Image-Recognition} and predicted labels~\cite{Virustotaluploadinterface}.
 Additionally, attackers are presumed to have access to public data and the resources required to train surrogate models~\cite{2023-AAAI-surrogate-model-for-adversarial-attack}.
